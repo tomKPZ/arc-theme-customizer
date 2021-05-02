@@ -115,5 +115,5 @@ for dir, dirs, files in os.walk(os.path.join('common', 'gtk-3.0', '3.24')):
 #             shell=True)
 
 subprocess.check_call('rm -rf build install', shell=True)
-subprocess.check_call('meson build --prefix="$(pwd)/install" -Dthemes=gtk3 -Dvariants=dark -Dtransprency=false', shell=True)
+subprocess.check_call('meson build --prefix="$(pwd)/install" -Dthemes=gtk3 -Dvariants=dark -Dtransprency=false -Dgtk3_version=3.24', shell=True)
 subprocess.check_call('meson install -C build', shell=True)
