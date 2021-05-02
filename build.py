@@ -16,13 +16,14 @@ ARC_BG_DARK = (0x38/255, 0x3c/255, 0x4a/255)
 # ARC_BG_LIGHT = (0xf5/255, 0xf6/255, 0xf7/255)
 ARC_ACCENT = '#5294e2'
 TARGET_ACCENT = '#00ff00'
+TARGET_FG = '#0000ff'
 
+# Maybe make this a shift to avoid clamping?
 def transfer_function(x0, y0):
     constant = x0*(y0-1)/(y0*(x0-1))
     return lambda x: x/(x - constant*(x - 1))
 
 target_h, target_l, target_s = colorsys.rgb_to_hls(*TARGET)
-print(target_h, target_l, target_s)
 bg_h, bg_l, bg_s = colorsys.rgb_to_hls(*ARC_BG_DARK)
 transfer_l = transfer_function(bg_l, target_l)
 transfer_s = transfer_function(bg_s, target_s)
@@ -36,8 +37,6 @@ def repl(m):
         return TARGET_ACCENT
     rgb = int(m[1:], 16)
     h, l, s = colorsys.rgb_to_hls((rgb // 256 // 256)/255, ((rgb // 256) % 256)/255, (rgb % 256)/255)
-    if m == '#cfd6e6':
-        print(abs(h - THEME_H), abs(s - THEME_S))
     if abs(h - THEME_H) > 0.05 or abs(s - THEME_S) > 0.1:
         return m
     h = target_h
@@ -59,16 +58,23 @@ for dir, dirs, files in os.walk(os.path.join('common', 'gtk-3.0', '3.24')):
         contents = re.sub('#[0-9a-fA-F]{6}', repl, contents)
         open(path, 'w').write(contents)
 
-# REPLACE = [
+FG_COLOR_NAMES = set(['text_color', 'fg_color', 'error_fg_color', 'warning_fg_color', 'suggested_fg_color', 'destructive_fg_color',])
+lines = []
+for line in open(os.path.join('common', 'gtk-3.0', '3.24', 'sass', '_colors.scss')).read().split('\n'):
+    if m := re.match(r'\$(\w+): (.*);$', line):
+        if m.group(1) in FG_COLOR_NAMES:
+            lines.append('$%s: %s;' % (m.group(1), TARGET_FG))
+            continue
+    lines.append(line)
+open(os.path.join('common', 'gtk-3.0', '3.24', 'sass', '_colors.scss'), 'w').write('\n'.join(lines))
+
+subprocess.check_call('sed -i "s/\(placeholder_text_color\) .*;/\\1 #{\\"\\" + mix(\$text_color, \$base_color, 50%)};/" common/gtk-3.0/3.24/sass/_colors-public.scss', shell=True)
+        
 #     # $warning_color: #F27835;
 #     # $error_color: #FC4138;
-#     # $warning_fg_color: white;
-#     # $error_fg_color: white;
 #     # $success_color: #73d216;
 #     # $destructive_color: #F04A50;
 #     # $suggested_color: #4DADD4;
-#     # $destructive_fg_color: white;
-#     # $suggested_fg_color: white;
 #     # $drop_target_color: #F08437;
 #     # $dark_sidebar_bg: if($transparency == 'true', transparentize(#353945, 0.05), #353945);
 #     # $dark_sidebar_fg: #BAC3CF;
@@ -82,41 +88,6 @@ for dir, dirs, files in os.walk(os.path.join('common', 'gtk-3.0', '3.24')):
 #     # $wm_icon_bg: if($variant == 'light' or $variant=='lighter', #90949E, #90939B);
 #     # $wm_icon_unfocused_bg: if($variant == 'light' or $variant=='lighter', #B6B8C0, #666A74);
 #     # $wm_icon_hover_bg: if($variant == 'light' or $variant=='lighter', #7A7F8B, #C4C7CC);
-
-#     # text_color
-#     (['5c616c', 'D3DAE3'], '0000ff'),
-    
-#     # base_color
-#     (['ffffff', '404552'], '300000'),
-#     # bg_color
-#     (['F5F6F7', '383C4A'], '180000'),
-#     # fg_color - same as text_color
-#     # (['5c616c', 'D3DAE3'], ''),
-#     # selected_fg_color - same as base_color ???
-#     # (['ffffff'], ''),
-#     # selected_bg_color
-#     (['5294e2'], 'ff0000'),
-#     # header_bg
-#     (['e7e8eb', '2f343f', '2d323f'], '180000'),
-#     # Asset colors
-#     (['f9fafb', '353a47'], '180000'),
-#     (['cfd6e6', '5b627b'], '400000'),
-#     (['2d323d'], '2d0000'),
-#     (['2b303b'], '2b0000'),
-#     (['5f6578'], '5f0000'),
-#     (['262934'], '260000'),
-#     (['7a7f8b'], '7a0000'),
-#     (['b9bcc2'], 'b90000'),
-#     (['5f697f'], '5f0000'),
-#     (['c0e3ff'], 'c00000'),
-# ]
-
-# for matches, replace_with in REPLACE:
-#     for match in matches:
-#         subprocess.check_call(
-#             '''find common/gtk-3.0/3.24 -name "*" -type f -exec sed -i 's/'%s'/'%s'/gI' {}  \;'''
-#             % (match, replace_with),
-#             shell=True)
 
 subprocess.check_call('rm -rf build install', shell=True)
 subprocess.check_call('meson build --prefix="$(pwd)/install" -Dthemes=gtk3 -Dvariants=dark -Dtransprency=false -Dgtk3_version=3.24', shell=True)
