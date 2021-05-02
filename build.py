@@ -25,8 +25,8 @@ bg_h, bg_l, bg_s = colorsys.rgb_to_hls(*ARC_BG_DARK)
 transfer_l = transfer_function(bg_l, target_l)
 transfer_s = transfer_function(bg_s, target_s)
 
-THEME_H = 0.6169712059
-THEME_S = 0.1238544412
+THEME_H = 0.61475
+THEME_S = 0.12992
 
 def repl(m):
     m = m.group(0)
@@ -34,7 +34,7 @@ def repl(m):
     h, l, s = colorsys.rgb_to_hls((rgb // 256 // 256)/255, ((rgb // 256) % 256)/255, (rgb % 256)/255)
     if m == '#cfd6e6':
         print(abs(h - THEME_H), abs(s - THEME_S))
-    if abs(h - THEME_H) > 0.05 or abs(s - THEME_S) > 0.2:
+    if abs(h - THEME_H) > 0.05 or abs(s - THEME_S) > 0.1:
         return m
     h = target_h
     l = transfer_l(l)
