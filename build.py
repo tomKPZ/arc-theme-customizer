@@ -10,8 +10,8 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 os.chdir(os.path.join(SCRIPT_DIR, 'arc-theme'))
 subprocess.check_output(['git', 'reset', '--hard'])
 
-THEME_H = 0.6148416923
-THEME_S = 0.1435133077
+THEME_H = 0.6169712059
+THEME_S = 0.1238544412
 
 replace_h = 0
 replace_s = 0.5
@@ -20,7 +20,7 @@ def repl(m):
     m = m.group(0)
     rgb = int(m[1:], 16)
     h, l, s = colorsys.rgb_to_hls((rgb // 256 // 256)/256, ((rgb // 256) % 256)/256, (rgb % 256)/256)
-    if ((h - THEME_H)**2 + (s - THEME_S)**2)**0.5 > 0.2:
+    if (h - THEME_H)**2 + (s - THEME_S)**2 > 0.04:
         return m
     h = replace_h
     s = replace_s
@@ -28,12 +28,10 @@ def repl(m):
     assert 0 <= r < 1
     assert 0 <= g < 1
     assert 0 <= b < 1
-    print(r, g, b)
     r = int(r * 255)
     g = int(g * 255)
     b = int(b * 255)
     return '#%06x' % (r*256*256 + g*256 + b)
-    
 
 for dir, dirs, files in os.walk(os.path.join('common', 'gtk-3.0', '3.24')):
     for file in files:
