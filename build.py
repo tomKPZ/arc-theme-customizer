@@ -65,6 +65,7 @@ for dir, dirs, files in os.walk(os.path.join('common', 'gtk-3.0', '3.24')):
         open(path, 'w').write(contents)
 
 FG_COLOR_NAMES = set([
+    'selected_fg_color',
     'text_color',
     'fg_color',
     'error_fg_color',
