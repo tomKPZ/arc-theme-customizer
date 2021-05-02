@@ -33,7 +33,8 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 os.chdir(os.path.join(SCRIPT_DIR, 'arc-theme'))
 subprocess.check_output(['git', 'reset', '--hard'])
 
-TARGET_BG = '#300101'
+TARGET_BG = '#ffc0c0'
+TARGET_BG = '#300000'
 TARGET_FG = '#0000ff'
 TARGET_ACCENT = '#00ff00'
 
@@ -51,13 +52,15 @@ def format_color(rgb):
     return '#%02x%02x%02x' % tuple(
         min(255, int(channel * 256)) for channel in rgb)
 
+def luma(color):
+    return colorsys.rgb_to_hls(*parse_color(color))[1]
 
 # Maybe make this a shift to avoid clamping?
 def transfer_function(x0, y0):
     constant = x0 * (y0 - 1) / (y0 * (x0 - 1))
     return lambda x: x / (x - constant * (x - 1))
 
-inverted = parse_color(TARGET_BG)[1] > parse_color(TARGET_FG)[1]
+inverted = luma(TARGET_FG) > luma(TARGET_BG)
 arc_bg = parse_color(ARC_BG_DARK if inverted else ARC_BG_LIGHT)
 
 target_h, target_l, target_s = colorsys.rgb_to_hls(*parse_color(TARGET_BG))
@@ -119,9 +122,11 @@ subprocess.check_call(
     'sed -i "s/\(placeholder_text_color\) .*;/\\1 #{\\"\\" + mix(\$text_color, \$base_color, 50%)};/" common/gtk-3.0/3.24/sass/_colors-public.scss',
     shell=True)
 
-subprocess.check_call('rm -rf build install', shell=True)
 variant = 'dark' if inverted else 'lighter'
+
 subprocess.check_call(
-    'meson build --prefix="$(pwd)/install" -Dthemes=gtk3 -Dvariants=%s -Dtransprency=false -Dgtk3_version=%s' % (variant, GTK_VERSION),
+    'meson build --prefix="$(pwd)/build/install" -Dthemes=gtk3 -Dvariants=%s -Dtransprency=false -Dgtk3_version=%s' % (variant, GTK_VERSION),
     shell=True)
 subprocess.check_call('meson install -C build', shell=True)
+print('ln -sf $(pwd)/build/install/share/themes/Arc-%s ../Arc-Base16' % variant.capitalize())
+subprocess.check_call('ln -sf $(pwd)/build/install/share/themes/Arc-%s ../Arc-Base16' % variant.capitalize(), shell=True)
