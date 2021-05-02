@@ -14,6 +14,8 @@ subprocess.check_output(['git', 'reset', '--hard'])
 TARGET = (0x30/255, 0x01/255, 0x01/255)
 ARC_BG_DARK = (0x38/255, 0x3c/255, 0x4a/255)
 # ARC_BG_LIGHT = (0xf5/255, 0xf6/255, 0xf7/255)
+ARC_ACCENT = '#5294e2'
+TARGET_ACCENT = '#00ff00'
 
 def transfer_function(x0, y0):
     constant = x0*(y0-1)/(y0*(x0-1))
@@ -30,6 +32,8 @@ THEME_S = 0.12992
 
 def repl(m):
     m = m.group(0)
+    if m == ARC_ACCENT:
+        return TARGET_ACCENT
     rgb = int(m[1:], 16)
     h, l, s = colorsys.rgb_to_hls((rgb // 256 // 256)/255, ((rgb // 256) % 256)/255, (rgb % 256)/255)
     if m == '#cfd6e6':
