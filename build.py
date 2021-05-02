@@ -33,9 +33,9 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 os.chdir(os.path.join(SCRIPT_DIR, 'arc-theme'))
 subprocess.check_output(['git', 'reset', '--hard'])
 
-TARGET_BG = '#300000'
-TARGET_FG = '#0000ff'
-TARGET_ACCENT = '#00ff00'
+TARGET_BG = '#0d0f18'
+TARGET_FG = '#fffaf3'
+TARGET_ACCENT = '#008df8'
 
 ARC_BG_DARK = '#383c4a'
 ARC_BG_LIGHT = '#f5f6f7'
