@@ -33,7 +33,6 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 os.chdir(os.path.join(SCRIPT_DIR, 'arc-theme'))
 subprocess.check_output(['git', 'reset', '--hard'])
 
-TARGET_BG = '#ffc0c0'
 TARGET_BG = '#300000'
 TARGET_FG = '#0000ff'
 TARGET_ACCENT = '#00ff00'
@@ -124,9 +123,9 @@ subprocess.check_call(
 
 variant = 'dark' if inverted else 'lighter'
 
+subprocess.check_call('rm -rf build', shell=True)
 subprocess.check_call(
     'meson build --prefix="$(pwd)/build/install" -Dthemes=gtk3 -Dvariants=%s -Dtransprency=false -Dgtk3_version=%s' % (variant, GTK_VERSION),
     shell=True)
 subprocess.check_call('meson install -C build', shell=True)
-print('ln -sf $(pwd)/build/install/share/themes/Arc-%s ../Arc-Base16' % variant.capitalize())
-subprocess.check_call('ln -sf $(pwd)/build/install/share/themes/Arc-%s ../Arc-Base16' % variant.capitalize(), shell=True)
+subprocess.check_call('ln -sf "$(pwd)/build/install/share/themes/Arc-%s" ../Arc-Base16' % variant.capitalize(), shell=True)
