@@ -10,27 +10,42 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 os.chdir(os.path.join(SCRIPT_DIR, 'arc-theme'))
 subprocess.check_output(['git', 'reset', '--hard'])
 
+# TARGET = (0x0d/255, 0x0f/255, 0x18/255)
+TARGET = (0x30/255, 0x01/255, 0x01/255)
+ARC_BG_DARK = (0x38/255, 0x3c/255, 0x4a/255)
+# ARC_BG_LIGHT = (0xf5/255, 0xf6/255, 0xf7/255)
+
+def transfer_function(x0, y0):
+    constant = x0*(y0-1)/(y0*(x0-1))
+    return lambda x: x/(x - constant*(x - 1))
+
+target_h, target_l, target_s = colorsys.rgb_to_hls(*TARGET)
+print(target_h, target_l, target_s)
+bg_h, bg_l, bg_s = colorsys.rgb_to_hls(*ARC_BG_DARK)
+transfer_l = transfer_function(bg_l, target_l)
+transfer_s = transfer_function(bg_s, target_s)
+
 THEME_H = 0.6169712059
 THEME_S = 0.1238544412
-
-replace_h = 0
-replace_s = 0.5
 
 def repl(m):
     m = m.group(0)
     rgb = int(m[1:], 16)
-    h, l, s = colorsys.rgb_to_hls((rgb // 256 // 256)/256, ((rgb // 256) % 256)/256, (rgb % 256)/256)
-    if (h - THEME_H)**2 + (s - THEME_S)**2 > 0.04:
+    h, l, s = colorsys.rgb_to_hls((rgb // 256 // 256)/255, ((rgb // 256) % 256)/255, (rgb % 256)/255)
+    if m == '#cfd6e6':
+        print(abs(h - THEME_H), abs(s - THEME_S))
+    if abs(h - THEME_H) > 0.05 or abs(s - THEME_S) > 0.2:
         return m
-    h = replace_h
-    s = replace_s
+    h = target_h
+    l = transfer_l(l)
+    s = transfer_s(s)
     r, g, b = colorsys.hls_to_rgb(h, l, s)
     assert 0 <= r < 1
     assert 0 <= g < 1
     assert 0 <= b < 1
-    r = int(r * 255)
-    g = int(g * 255)
-    b = int(b * 255)
+    r = min(255, int(r * 256))
+    g = min(255, int(g * 256))
+    b = min(255, int(b * 256))
     return '#%06x' % (r*256*256 + g*256 + b)
 
 for dir, dirs, files in os.walk(os.path.join('common', 'gtk-3.0', '3.24')):
@@ -100,5 +115,5 @@ for dir, dirs, files in os.walk(os.path.join('common', 'gtk-3.0', '3.24')):
 #             shell=True)
 
 subprocess.check_call('rm -rf build install', shell=True)
-subprocess.check_call('meson build --prefix=$(pwd)/install -Dthemes=gtk3 -Dvariants=dark -Dtransprency=false', shell=True)
+subprocess.check_call('meson build --prefix="$(pwd)/install" -Dthemes=gtk3 -Dvariants=dark -Dtransprency=false', shell=True)
 subprocess.check_call('meson install -C build', shell=True)
