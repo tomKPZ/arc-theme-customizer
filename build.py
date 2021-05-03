@@ -86,6 +86,12 @@ transfer_l = transfer_function(bg_l, target_l)
 transfer_s = transfer_function(bg_s, target_s)
 
 
+def sed(fname, pattern, replace_with):
+    contents = open(fname).read()
+    contents = pattern.sub(replace_with, contents)
+    open(fname, 'w').write(contents)
+
+
 def is_base_color(hue, saturation):
     BASE_H = 0.61475
     BASE_S = 0.12992
@@ -109,10 +115,7 @@ def map_color(m):
 COLOR_PATTERN = re.compile(r'#[0-9a-fA-F]{6}')
 for dir, dirs, files in os.walk(GTK3_DIR):
     for file in files:
-        path = os.path.join(dir, file)
-        contents = open(path).read()
-        contents = COLOR_PATTERN.sub(map_color, contents)
-        open(path, 'w').write(contents)
+        sed(os.path.join(dir, file), COLOR_PATTERN, map_color)
 
 FG_COLOR_NAMES = set([
     'selected_fg_color',
@@ -132,9 +135,7 @@ def map_color_definition(m):
     return m.group(0)
 
 
-colors_sass = open(COLORS_SASS_FILE).read()
-colors_sass = COLOR_DEFINITION_PATTERN.sub(map_color_definition, colors_sass)
-open(COLORS_SASS_FILE, 'w').write(colors_sass)
+sed(COLORS_SASS_FILE, COLOR_DEFINITION_PATTERN, map_color_definition)
 
 subprocess.check_call(['rm', '-rf', BUILD_DIR])
 subprocess.check_call([
