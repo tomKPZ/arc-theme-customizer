@@ -30,11 +30,15 @@ import config
 # $wm_icon_hover_bg: if($variant == 'light' or $variant=='lighter', #7A7F8B, #C4C7CC);
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-os.chdir(os.path.join(SCRIPT_DIR, 'arc-theme'))
+CWD = os.path.join(SCRIPT_DIR, 'arc-theme')
+os.chdir(CWD)
+
 subprocess.check_output(['git', 'reset', '--hard'])
+patch_dir = os.path.join(SCRIPT_DIR, 'patches')
+for fname in os.listdir(patch_dir):
+    subprocess.check_output(['git', 'apply', os.path.join(patch_dir, fname)])
 
 GTK_VERSION = '3.24'
-
 
 ARC_BG_DARK = '#383c4a'
 ARC_BG_LIGHT = '#f5f6f7'
@@ -50,18 +54,22 @@ def format_color(rgb):
     return '#%02x%02x%02x' % tuple(
         min(255, int(channel * 256)) for channel in rgb)
 
+
 def luma(color):
     return colorsys.rgb_to_hls(*parse_color(color))[1]
+
 
 # Maybe make this a shift to avoid clamping?
 def transfer_function(x0, y0):
     constant = x0 * (y0 - 1) / (y0 * (x0 - 1))
     return lambda x: x / (x - constant * (x - 1))
 
+
 inverted = luma(config.FOREGROUND) > luma(config.BACKGROUND)
 arc_bg = parse_color(ARC_BG_DARK if inverted else ARC_BG_LIGHT)
 
-target_h, target_l, target_s = colorsys.rgb_to_hls(*parse_color(config.BACKGROUND))
+target_h, target_l, target_s = colorsys.rgb_to_hls(
+    *parse_color(config.BACKGROUND))
 bg_h, bg_l, bg_s = colorsys.rgb_to_hls(*arc_bg)
 transfer_l = transfer_function(bg_l, target_l)
 transfer_s = transfer_function(bg_s, target_s)
@@ -87,7 +95,7 @@ def repl(m):
         colorsys.hls_to_rgb(target_h, transfer_l(l), transfer_s(s)))
 
 
-gtk_dir = os.path.join('common', 'gtk-3.0', GTK_VERSION)
+gtk_dir = os.path.join(CWD, 'common', 'gtk-3.0', GTK_VERSION)
 COLOR_PATTERN = re.compile(r'#[0-9a-fA-F]{6}')
 for dir, dirs, files in os.walk(gtk_dir):
     for file in files:
@@ -116,15 +124,20 @@ for line in open(colors_sass_file):
     lines.append(line)
 open(colors_sass_file, 'w').write(''.join(lines))
 
-subprocess.check_call(
-    'sed -i "s/\(placeholder_text_color\) .*;/\\1 #{\\"\\" + mix(\$text_color, \$base_color, 50%)};/" common/gtk-3.0/3.24/sass/_colors-public.scss',
-    shell=True)
-
 variant = 'dark' if inverted else 'lighter'
 
-subprocess.check_call('rm -rf build', shell=True)
+subprocess.check_call(['rm', '-rf', 'build'])
+subprocess.check_call([
+    'meson',
+    'build',
+    '--prefix=%s/build/install' % CWD,
+    '-Dthemes=gtk3',
+    '-Dgtk3_version=' + GTK_VERSION,
+    '-Dvariants=' + variant,
+    '-Dtransparency=false'
+])
+subprocess.check_call(['meson', 'install', '-C', 'build'])
 subprocess.check_call(
-    'meson build --prefix="$(pwd)/build/install" -Dthemes=gtk3 -Dvariants=%s -Dtransparency=false -Dgtk3_version=%s' % (variant, GTK_VERSION),
+    'ln -sf "$(pwd)/build/install/share/themes/Arc-%s-solid" ../Arc-Base16' %
+    variant.capitalize(),
     shell=True)
-subprocess.check_call('meson install -C build', shell=True)
-subprocess.check_call('ln -sf "$(pwd)/build/install/share/themes/Arc-%s-solid" ../Arc-Base16' % variant.capitalize(), shell=True)
