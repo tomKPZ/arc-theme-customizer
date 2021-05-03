@@ -66,6 +66,8 @@ def luma(color):
 
 # Maybe make this a shift to avoid clamping?
 def transfer_function(x0, y0):
+    if y0 in (0, 1):
+        return lambda _: y0
     constant = x0 * (y0 - 1) / (y0 * (x0 - 1))
     return lambda x: x / (x - constant * (x - 1))
 
