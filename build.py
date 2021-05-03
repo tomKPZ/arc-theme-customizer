@@ -124,7 +124,6 @@ GTK_VERSION = '3.24'
 ARC_BG_DARK = '#383c4a'
 ARC_BG_LIGHT = '#f5f6f7'
 ARC_ACCENT = '#5294e2'
-
 if luma(config.FOREGROUND) > luma(config.BACKGROUND):
     ARC_BG = parse_color(ARC_BG_DARK)
     THEME_VARIANT = 'dark'
@@ -147,8 +146,6 @@ COLOR_DEFINITION_PATTERN = re.compile(r'\$(\w+): (.*);')
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 CWD = os.path.join(SCRIPT_DIR, 'arc-theme')
-os.chdir(CWD)
-
 PATCH_DIR = os.path.join(SCRIPT_DIR, 'patches')
 GTK3_DIR = os.path.join(CWD, 'common', 'gtk-3.0', GTK_VERSION)
 COLORS_SASS_FILE = os.path.join(GTK3_DIR, 'sass', '_colors.scss')
@@ -160,6 +157,7 @@ ARC_BASE16_DIR = os.path.join(SCRIPT_DIR, 'Arc-Base16')
 
 
 def main():
+    os.chdir(CWD)
     rewrite_files()
     build()
     return 0
