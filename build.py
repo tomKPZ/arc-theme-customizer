@@ -94,7 +94,7 @@ def is_base_color(hue, saturation):
     return abs(hue - BASE_H) < THRESH_H and abs(saturation - BASE_S) < THRESH_S
 
 
-def repl(m):
+def map_color(m):
     m = m.group(0)
     if m == ARC_ACCENT:
         return config.ACCENT
@@ -111,7 +111,7 @@ for dir, dirs, files in os.walk(GTK3_DIR):
     for file in files:
         path = os.path.join(dir, file)
         contents = open(path).read()
-        contents = COLOR_PATTERN.sub(repl, contents)
+        contents = COLOR_PATTERN.sub(map_color, contents)
         open(path, 'w').write(contents)
 
 FG_COLOR_NAMES = set([
@@ -123,15 +123,18 @@ FG_COLOR_NAMES = set([
     'suggested_fg_color',
     'destructive_fg_color',
 ])
-lines = []
-COLOR_DEFINITION_PATTERN = re.compile(r'\$(\w+): (.*);$')
-for line in open(COLORS_SASS_FILE):
-    if m := COLOR_DEFINITION_PATTERN.match(line):
-        if m.group(1) in FG_COLOR_NAMES:
-            lines.append('$%s: %s;\n' % (m.group(1), config.FOREGROUND))
-            continue
-    lines.append(line)
-open(COLORS_SASS_FILE, 'w').write(''.join(lines))
+COLOR_DEFINITION_PATTERN = re.compile(r'\$(\w+): (.*);')
+
+
+def map_color_definition(m):
+    if m.group(1) in FG_COLOR_NAMES:
+        return '$%s: %s;\n' % (m.group(1), config.FOREGROUND)
+    return m.group(0)
+
+
+colors_sass = open(COLORS_SASS_FILE).read()
+colors_sass = COLOR_DEFINITION_PATTERN.sub(map_color_definition, colors_sass)
+open(COLORS_SASS_FILE, 'w').write(colors_sass)
 
 subprocess.check_call(['rm', '-rf', BUILD_DIR])
 subprocess.check_call([
