@@ -29,16 +29,21 @@ import config
 # $wm_icon_unfocused_bg: if($variant == 'light' or $variant=='lighter', #B6B8C0, #666A74);
 # $wm_icon_hover_bg: if($variant == 'light' or $variant=='lighter', #7A7F8B, #C4C7CC);
 
+GTK_VERSION = '3.24'
+
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 CWD = os.path.join(SCRIPT_DIR, 'arc-theme')
 os.chdir(CWD)
 
-subprocess.check_output(['git', 'reset', '--hard'])
-patch_dir = os.path.join(SCRIPT_DIR, 'patches')
-for fname in os.listdir(patch_dir):
-    subprocess.check_output(['git', 'apply', os.path.join(patch_dir, fname)])
+PATCH_DIR = os.path.join(SCRIPT_DIR, 'patches')
+GTK3_DIR = os.path.join(CWD, 'common', 'gtk-3.0', GTK_VERSION)
+COLORS_SASS_FILE = os.path.join(GTK3_DIR, 'sass', '_colors.scss')
+BUILD_DIR = os.path.join(CWD, 'build')
+INSTALL_DIR = os.path.join(BUILD_DIR, 'install')
 
-GTK_VERSION = '3.24'
+subprocess.check_output(['git', 'reset', '--hard'])
+for fname in os.listdir(PATCH_DIR):
+    subprocess.check_output(['git', 'apply', os.path.join(PATCH_DIR, fname)])
 
 ARC_BG_DARK = '#383c4a'
 ARC_BG_LIGHT = '#f5f6f7'
@@ -65,12 +70,16 @@ def transfer_function(x0, y0):
     return lambda x: x / (x - constant * (x - 1))
 
 
-inverted = luma(config.FOREGROUND) > luma(config.BACKGROUND)
-arc_bg = parse_color(ARC_BG_DARK if inverted else ARC_BG_LIGHT)
+if luma(config.FOREGROUND) > luma(config.BACKGROUND):
+    ARC_BG = parse_color(ARC_BG_DARK)
+    THEME_VARIANT = 'dark'
+else:
+    ARC_BG = parse_color(ARC_BG_LIGHT)
+    THEME_VARIANT = 'lighter'
 
 target_h, target_l, target_s = colorsys.rgb_to_hls(
     *parse_color(config.BACKGROUND))
-bg_h, bg_l, bg_s = colorsys.rgb_to_hls(*arc_bg)
+bg_h, bg_l, bg_s = colorsys.rgb_to_hls(*ARC_BG)
 transfer_l = transfer_function(bg_l, target_l)
 transfer_s = transfer_function(bg_s, target_s)
 
@@ -95,9 +104,8 @@ def repl(m):
         colorsys.hls_to_rgb(target_h, transfer_l(l), transfer_s(s)))
 
 
-gtk_dir = os.path.join(CWD, 'common', 'gtk-3.0', GTK_VERSION)
 COLOR_PATTERN = re.compile(r'#[0-9a-fA-F]{6}')
-for dir, dirs, files in os.walk(gtk_dir):
+for dir, dirs, files in os.walk(GTK3_DIR):
     for file in files:
         path = os.path.join(dir, file)
         contents = open(path).read()
@@ -115,29 +123,28 @@ FG_COLOR_NAMES = set([
 ])
 lines = []
 COLOR_DEFINITION_PATTERN = re.compile(r'\$(\w+): (.*);$')
-colors_sass_file = os.path.join(gtk_dir, 'sass', '_colors.scss')
-for line in open(colors_sass_file):
+for line in open(COLORS_SASS_FILE):
     if m := COLOR_DEFINITION_PATTERN.match(line):
         if m.group(1) in FG_COLOR_NAMES:
             lines.append('$%s: %s;\n' % (m.group(1), config.FOREGROUND))
             continue
     lines.append(line)
-open(colors_sass_file, 'w').write(''.join(lines))
+open(COLORS_SASS_FILE, 'w').write(''.join(lines))
 
-variant = 'dark' if inverted else 'lighter'
-
-subprocess.check_call(['rm', '-rf', 'build'])
+subprocess.check_call(['rm', '-rf', BUILD_DIR])
 subprocess.check_call([
     'meson',
     'build',
-    '--prefix=%s/build/install' % CWD,
+    '--prefix=' + INSTALL_DIR,
     '-Dthemes=gtk3',
     '-Dgtk3_version=' + GTK_VERSION,
-    '-Dvariants=' + variant,
-    '-Dtransparency=false'
+    '-Dvariants=' + THEME_VARIANT,
+    '-Dtransparency=false',
 ])
 subprocess.check_call(['meson', 'install', '-C', 'build'])
-subprocess.check_call(
-    'ln -sf "$(pwd)/build/install/share/themes/Arc-%s-solid" ../Arc-Base16' %
-    variant.capitalize(),
-    shell=True)
+subprocess.check_call([
+    'ln', '-sf',
+    os.path.join(INSTALL_DIR, 'share', 'themes',
+                 'Arc-%s-solid' % THEME_VARIANT.capitalize()),
+    os.path.join(SCRIPT_DIR, 'Arc-Base16')
+])
