@@ -4,6 +4,7 @@ import colorsys
 import itertools
 import os
 import re
+import shutil
 import subprocess
 import sys
 
@@ -29,26 +30,6 @@ import config
 # $wm_icon_unfocused_bg: if($variant == 'light' or $variant=='lighter', #B6B8C0, #666A74);
 # $wm_icon_hover_bg: if($variant == 'light' or $variant=='lighter', #7A7F8B, #C4C7CC);
 
-GTK_VERSION = '3.24'
-
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-CWD = os.path.join(SCRIPT_DIR, 'arc-theme')
-os.chdir(CWD)
-
-PATCH_DIR = os.path.join(SCRIPT_DIR, 'patches')
-GTK3_DIR = os.path.join(CWD, 'common', 'gtk-3.0', GTK_VERSION)
-COLORS_SASS_FILE = os.path.join(GTK3_DIR, 'sass', '_colors.scss')
-BUILD_DIR = os.path.join(CWD, 'build')
-INSTALL_DIR = os.path.join(BUILD_DIR, 'install')
-
-subprocess.check_output(['git', 'reset', '--hard'])
-for fname in os.listdir(PATCH_DIR):
-    subprocess.check_output(['git', 'apply', os.path.join(PATCH_DIR, fname)])
-
-ARC_BG_DARK = '#383c4a'
-ARC_BG_LIGHT = '#f5f6f7'
-ARC_ACCENT = '#5294e2'
-
 
 def parse_color(color):
     color = color.lstrip('#')
@@ -72,20 +53,6 @@ def transfer_function(x0, y0):
     return lambda x: x / (x - constant * (x - 1))
 
 
-if luma(config.FOREGROUND) > luma(config.BACKGROUND):
-    ARC_BG = parse_color(ARC_BG_DARK)
-    THEME_VARIANT = 'dark'
-else:
-    ARC_BG = parse_color(ARC_BG_LIGHT)
-    THEME_VARIANT = 'lighter'
-
-target_h, target_l, target_s = colorsys.rgb_to_hls(
-    *parse_color(config.BACKGROUND))
-bg_h, bg_l, bg_s = colorsys.rgb_to_hls(*ARC_BG)
-transfer_l = transfer_function(bg_l, target_l)
-transfer_s = transfer_function(bg_s, target_s)
-
-
 def sed(fname, pattern, replace_with):
     contents = open(fname).read()
     contents = pattern.sub(replace_with, contents)
@@ -100,22 +67,70 @@ def is_base_color(hue, saturation):
     return abs(hue - BASE_H) < THRESH_H and abs(saturation - BASE_S) < THRESH_S
 
 
-def map_color(m):
-    m = m.group(0)
-    if m == ARC_ACCENT:
-        return config.ACCENT
-    rgb = parse_color(m)
-    h, l, s = colorsys.rgb_to_hls(*rgb)
-    if not is_base_color(h, s):
-        return m
-    return format_color(
-        colorsys.hls_to_rgb(target_h, transfer_l(l), transfer_s(s)))
+def map_color_definition(m):
+    if m.group(1) in FG_COLOR_NAMES:
+        return '$%s: %s;\n' % (m.group(1), config.FOREGROUND)
+    return m.group(0)
 
 
-COLOR_PATTERN = re.compile(r'#[0-9a-fA-F]{6}')
-for dir, dirs, files in os.walk(GTK3_DIR):
-    for file in files:
-        sed(os.path.join(dir, file), COLOR_PATTERN, map_color)
+def rewrite_files():
+    subprocess.check_output(['git', 'reset', '--hard'])
+    for fname in os.listdir(PATCH_DIR):
+        subprocess.check_output(
+            ['git', 'apply', os.path.join(PATCH_DIR, fname)])
+
+    target_h, target_l, target_s = colorsys.rgb_to_hls(
+        *parse_color(config.BACKGROUND))
+    bg_h, bg_l, bg_s = colorsys.rgb_to_hls(*ARC_BG)
+    transfer_l = transfer_function(bg_l, target_l)
+    transfer_s = transfer_function(bg_s, target_s)
+
+    def map_color(m):
+        m = m.group(0)
+        if m == ARC_ACCENT:
+            return config.ACCENT
+        rgb = parse_color(m)
+        h, l, s = colorsys.rgb_to_hls(*rgb)
+        if not is_base_color(h, s):
+            return m
+        return format_color(
+            colorsys.hls_to_rgb(target_h, transfer_l(l), transfer_s(s)))
+
+    for dir, dirs, files in os.walk(GTK3_DIR):
+        for file in files:
+            sed(os.path.join(dir, file), COLOR_PATTERN, map_color)
+
+    sed(COLORS_SASS_FILE, COLOR_DEFINITION_PATTERN, map_color_definition)
+
+
+def build():
+    shutil.rmtree(BUILD_DIR, ignore_errors=True)
+    subprocess.check_call([
+        'meson',
+        'build',
+        '--prefix=' + INSTALL_DIR,
+        '-Dthemes=gtk3',
+        '-Dgtk3_version=' + GTK_VERSION,
+        '-Dvariants=' + THEME_VARIANT,
+        '-Dtransparency=false',
+    ])
+    subprocess.check_call(['meson', 'install', '-C', 'build'])
+    shutil.rmtree(ARC_BASE16_DIR, ignore_errors=True)
+    shutil.move(ARC_SOLID_DIR, ARC_BASE16_DIR)
+
+
+GTK_VERSION = '3.24'
+
+ARC_BG_DARK = '#383c4a'
+ARC_BG_LIGHT = '#f5f6f7'
+ARC_ACCENT = '#5294e2'
+
+if luma(config.FOREGROUND) > luma(config.BACKGROUND):
+    ARC_BG = parse_color(ARC_BG_DARK)
+    THEME_VARIANT = 'dark'
+else:
+    ARC_BG = parse_color(ARC_BG_LIGHT)
+    THEME_VARIANT = 'lighter'
 
 FG_COLOR_NAMES = set([
     'selected_fg_color',
@@ -126,31 +141,29 @@ FG_COLOR_NAMES = set([
     'suggested_fg_color',
     'destructive_fg_color',
 ])
+
+COLOR_PATTERN = re.compile(r'#[0-9a-fA-F]{6}')
 COLOR_DEFINITION_PATTERN = re.compile(r'\$(\w+): (.*);')
 
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+CWD = os.path.join(SCRIPT_DIR, 'arc-theme')
+os.chdir(CWD)
 
-def map_color_definition(m):
-    if m.group(1) in FG_COLOR_NAMES:
-        return '$%s: %s;\n' % (m.group(1), config.FOREGROUND)
-    return m.group(0)
+PATCH_DIR = os.path.join(SCRIPT_DIR, 'patches')
+GTK3_DIR = os.path.join(CWD, 'common', 'gtk-3.0', GTK_VERSION)
+COLORS_SASS_FILE = os.path.join(GTK3_DIR, 'sass', '_colors.scss')
+BUILD_DIR = os.path.join(CWD, 'build')
+INSTALL_DIR = os.path.join(BUILD_DIR, 'install')
+ARC_SOLID_DIR = os.path.join(INSTALL_DIR, 'share', 'themes',
+                             'Arc-%s-solid' % THEME_VARIANT.capitalize())
+ARC_BASE16_DIR = os.path.join(SCRIPT_DIR, 'Arc-Base16')
 
 
-sed(COLORS_SASS_FILE, COLOR_DEFINITION_PATTERN, map_color_definition)
+def main():
+    rewrite_files()
+    build()
+    return 0
 
-subprocess.check_call(['rm', '-rf', BUILD_DIR])
-subprocess.check_call([
-    'meson',
-    'build',
-    '--prefix=' + INSTALL_DIR,
-    '-Dthemes=gtk3',
-    '-Dgtk3_version=' + GTK_VERSION,
-    '-Dvariants=' + THEME_VARIANT,
-    '-Dtransparency=false',
-])
-subprocess.check_call(['meson', 'install', '-C', 'build'])
-subprocess.check_call([
-    'ln', '-sf',
-    os.path.join(INSTALL_DIR, 'share', 'themes',
-                 'Arc-%s-solid' % THEME_VARIANT.capitalize()),
-    os.path.join(SCRIPT_DIR, 'Arc-Base16')
-])
+
+if __name__ == '__main__':
+    sys.exit(main())
