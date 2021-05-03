@@ -1,0 +1,25 @@
+From 483f1a258ce2fe9c216cefda8d47913e6d0dd6c7 Mon Sep 17 00:00:00 2001
+From: tomKPZ <tomKPZ@gmail.com>
+Date: Sun, 2 May 2021 18:25:11 -0700
+Subject: [PATCH] Unhardcode placeholder text color
+
+---
+ common/gtk-3.0/3.24/sass/_colors-public.scss | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/common/gtk-3.0/3.24/sass/_colors-public.scss b/common/gtk-3.0/3.24/sass/_colors-public.scss
+index 60127ec..6e1a076 100644
+--- a/common/gtk-3.0/3.24/sass/_colors-public.scss
++++ b/common/gtk-3.0/3.24/sass/_colors-public.scss
+@@ -27,7 +27,7 @@
+ @define-color warning_color #{"" + $warning_color};
+ @define-color error_color #{"" + $error_color};
+ @define-color success_color #{"" + $success_color};
+-@define-color placeholder_text_color #{#A8A8A8};
++@define-color placeholder_text_color #{"" + mix($text_color, $base_color, 50%)};
+ @define-color link_color #{"" + $link_color};
+ 
+ @define-color content_view_bg #{"" + $base_color};
+-- 
+2.31.1
+

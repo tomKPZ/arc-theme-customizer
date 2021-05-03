@@ -7,6 +7,8 @@ import re
 import subprocess
 import sys
 
+import config
+
 # ----- Unthemed colors -----
 # $warning_color: #F27835;
 # $error_color: #FC4138;
@@ -27,15 +29,12 @@ import sys
 # $wm_icon_unfocused_bg: if($variant == 'light' or $variant=='lighter', #B6B8C0, #666A74);
 # $wm_icon_hover_bg: if($variant == 'light' or $variant=='lighter', #7A7F8B, #C4C7CC);
 
-GTK_VERSION = '3.24'
-
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 os.chdir(os.path.join(SCRIPT_DIR, 'arc-theme'))
 subprocess.check_output(['git', 'reset', '--hard'])
 
-TARGET_BG = '#0d0f18'
-TARGET_FG = '#fffaf3'
-TARGET_ACCENT = '#008df8'
+GTK_VERSION = '3.24'
+
 
 ARC_BG_DARK = '#383c4a'
 ARC_BG_LIGHT = '#f5f6f7'
@@ -59,10 +58,10 @@ def transfer_function(x0, y0):
     constant = x0 * (y0 - 1) / (y0 * (x0 - 1))
     return lambda x: x / (x - constant * (x - 1))
 
-inverted = luma(TARGET_FG) > luma(TARGET_BG)
+inverted = luma(config.FOREGROUND) > luma(config.BACKGROUND)
 arc_bg = parse_color(ARC_BG_DARK if inverted else ARC_BG_LIGHT)
 
-target_h, target_l, target_s = colorsys.rgb_to_hls(*parse_color(TARGET_BG))
+target_h, target_l, target_s = colorsys.rgb_to_hls(*parse_color(config.BACKGROUND))
 bg_h, bg_l, bg_s = colorsys.rgb_to_hls(*arc_bg)
 transfer_l = transfer_function(bg_l, target_l)
 transfer_s = transfer_function(bg_s, target_s)
@@ -79,7 +78,7 @@ def is_base_color(hue, saturation):
 def repl(m):
     m = m.group(0)
     if m == ARC_ACCENT:
-        return TARGET_ACCENT
+        return config.ACCENT
     rgb = parse_color(m)
     h, l, s = colorsys.rgb_to_hls(*rgb)
     if not is_base_color(h, s):
@@ -112,7 +111,7 @@ colors_sass_file = os.path.join(gtk_dir, 'sass', '_colors.scss')
 for line in open(colors_sass_file):
     if m := COLOR_DEFINITION_PATTERN.match(line):
         if m.group(1) in FG_COLOR_NAMES:
-            lines.append('$%s: %s;\n' % (m.group(1), TARGET_FG))
+            lines.append('$%s: %s;\n' % (m.group(1), config.FOREGROUND))
             continue
     lines.append(line)
 open(colors_sass_file, 'w').write(''.join(lines))
@@ -125,7 +124,7 @@ variant = 'dark' if inverted else 'lighter'
 
 subprocess.check_call('rm -rf build', shell=True)
 subprocess.check_call(
-    'meson build --prefix="$(pwd)/build/install" -Dthemes=gtk3 -Dvariants=%s -Dtransprency=false -Dgtk3_version=%s' % (variant, GTK_VERSION),
+    'meson build --prefix="$(pwd)/build/install" -Dthemes=gtk3 -Dvariants=%s -Dtransparency=false -Dgtk3_version=%s' % (variant, GTK_VERSION),
     shell=True)
 subprocess.check_call('meson install -C build', shell=True)
-subprocess.check_call('ln -sf "$(pwd)/build/install/share/themes/Arc-%s" ../Arc-Base16' % variant.capitalize(), shell=True)
+subprocess.check_call('ln -sf "$(pwd)/build/install/share/themes/Arc-%s-solid" ../Arc-Base16' % variant.capitalize(), shell=True)
