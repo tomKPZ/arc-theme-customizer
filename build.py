@@ -32,8 +32,8 @@ import config
 
 
 def parse_color(color):
-    color = color.lstrip('#')
-    return [int(color[2 * i:2 * i + 2], 16) / 255 for i in range(3)]
+    assert color[0] == '#'
+    return [int(color[2 * i + 1:2 * i + 3], 16) / 255 for i in range(3)]
 
 
 def format_color(rgb):
@@ -67,7 +67,33 @@ def is_base_color(hue, saturation):
     return abs(hue - BASE_H) < THRESH_H and abs(saturation - BASE_S) < THRESH_S
 
 
+# https://www.w3.org/TR/WCAG20/#relativeluminancedef
+def relative_luma(rgb):
+    def channel(c):
+        if c <= 0.03928:
+            return c / 12.92
+        return ((c + 0.055) / 1.055)**2.4
+
+    return sum(coeff * c
+               for (coeff,
+                    c) in zip([0.2126, 0.7152, 0.0722], parse_color(rgb)))
+
+# https://www.w3.org/TR/WCAG20/#contrast-ratiodef
+def contrast_ratio(c1, c2):
+    ratio = (relative_luma(c1) + 0.05) / (relative_luma(c2) + 0.05)
+    return ratio if ratio >= 1 else 1 / ratio
+
+
+def selected_fg_color():
+    if (contrast_ratio(config.FOREGROUND, config.ACCENT) > contrast_ratio(
+            config.BACKGROUND, config.ACCENT)):
+        return config.FOREGROUND
+    return config.BACKGROUND
+
+
 def map_color_definition(m):
+    if m.group(1) == 'selected_fg_color':
+        return '$%s: %s;\n' % (m.group(1), selected_fg_color())
     if m.group(1) in FG_COLOR_NAMES:
         return '$%s: %s;\n' % (m.group(1), config.FOREGROUND)
     return m.group(0)
@@ -132,7 +158,6 @@ else:
     THEME_VARIANT = 'lighter'
 
 FG_COLOR_NAMES = set([
-    'selected_fg_color',
     'text_color',
     'fg_color',
     'error_fg_color',
