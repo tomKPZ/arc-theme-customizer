@@ -41,10 +41,6 @@ def format_color(rgb):
         min(255, int(channel * 256)) for channel in rgb)
 
 
-def luma(color):
-    return colorsys.rgb_to_hls(*parse_color(color))[1]
-
-
 # Maybe make this a shift to avoid clamping?
 def transfer_function(x0, y0):
     if y0 in (0, 1):
@@ -86,14 +82,16 @@ def contrast_ratio(c1, c2):
 
 def selected_fg_color():
     if (contrast_ratio(config.FOREGROUND, config.ACCENT) > contrast_ratio(
-            config.BACKGROUND, config.ACCENT)):
+            config.BASE, config.ACCENT)):
         return config.FOREGROUND
-    return config.BACKGROUND
+    return config.BASE
 
 
 def map_color_definition(m):
     if m.group(1) == 'selected_fg_color':
         return '$%s: %s;\n' % (m.group(1), selected_fg_color())
+    if m.group(1) == 'base_color':
+        return '$%s: %s;\n' % (m.group(1), config.BASE)
     if m.group(1) in FG_COLOR_NAMES:
         return '$%s: %s;\n' % (m.group(1), config.FOREGROUND)
     return m.group(0)
@@ -150,7 +148,7 @@ GTK_VERSION = '3.24'
 ARC_BG_DARK = '#383c4a'
 ARC_BG_LIGHT = '#f5f6f7'
 ARC_ACCENT = '#5294e2'
-if luma(config.FOREGROUND) > luma(config.BACKGROUND):
+if relative_luma(config.FOREGROUND) > relative_luma(config.BASE):
     ARC_BG = parse_color(ARC_BG_DARK)
     THEME_VARIANT = 'dark'
 else:
