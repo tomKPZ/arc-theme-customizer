@@ -142,9 +142,9 @@ def build():
             '-Dtransparency=false',
         ])
         subprocess.check_call(['ninja', '-C', BUILD_DIR])
-    subprocess.check_call(['sassc', GTK_MAIN_FILE, GTK_CSS_FILE])
     shutil.rmtree(ARC_BASE16_DIR, ignore_errors=True)
     os.makedirs(ASSETS_DIR)
+    subprocess.check_call(['sassc', GTK_MAIN_FILE, GTK_CSS_FILE])
     for fname in os.listdir(SVG_DIR):
         if not fname.endswith('.svg'):
             continue
