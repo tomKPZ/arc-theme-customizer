@@ -141,16 +141,14 @@ def build():
             '-Dvariants=dark,lighter',
             '-Dtransparency=false',
         ])
-    subprocess.check_call(['ninja', '-C', BUILD_DIR, GTK_MAIN_FILE])
+        subprocess.check_call(['ninja', '-C', BUILD_DIR])
+    subprocess.check_call(['sassc', GTK_MAIN_FILE, GTK_CSS_FILE])
     shutil.rmtree(ARC_BASE16_DIR, ignore_errors=True)
     os.makedirs(ASSETS_DIR)
-    shutil.move(os.path.join(BUILD_DIR, GTK_MAIN_FILE),
-                os.path.join(ARC_BASE16_DIR, 'gtk-3.0', 'gtk.css'))
-    GTK3_DIR = os.path.join(BUILD_DIR, 'common', 'gtk-3.0')
-    for fname in os.listdir(GTK3_DIR):
+    for fname in os.listdir(SVG_DIR):
         if not fname.endswith('.svg'):
             continue
-        sed(os.path.join(GTK3_DIR, fname), os.path.join(ASSETS_DIR, fname),
+        sed(os.path.join(SVG_DIR, fname), os.path.join(ASSETS_DIR, fname),
             COLOR_PATTERN, map_color)
 
 
@@ -183,11 +181,13 @@ CWD = os.path.join(SCRIPT_DIR, 'arc-theme')
 PATCH_DIR = os.path.join(SCRIPT_DIR, 'patches')
 SASS_DIR = os.path.join(CWD, 'common', 'gtk-3.0', GTK_VERSION, 'sass')
 COLORS_SASS_FILE = os.path.join(SASS_DIR, '_colors.scss')
+GTK_MAIN_FILE = os.path.join(SASS_DIR, 'gtk-solid-%s.scss' % THEME_VARIANT)
 BUILD_DIR = os.path.join(CWD, 'build')
+SVG_DIR = os.path.join(BUILD_DIR, 'common', 'gtk-3.0')
 ARC_BASE16_DIR = os.path.join(SCRIPT_DIR, 'Arc-Base16')
-GTK_MAIN_FILE = os.path.join('common', 'gtk-3.0',
-                             'gtk-main-%s.css' % THEME_VARIANT)
-ASSETS_DIR = os.path.join(ARC_BASE16_DIR, 'gtk-3.0', 'assets')
+THEME_DIR = os.path.join(ARC_BASE16_DIR, 'gtk-3.0')
+ASSETS_DIR = os.path.join(THEME_DIR, 'assets')
+GTK_CSS_FILE = os.path.join(THEME_DIR, 'gtk.css')
 
 
 def main():
