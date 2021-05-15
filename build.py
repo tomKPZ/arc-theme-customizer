@@ -49,10 +49,10 @@ def transfer_function(x0, y0):
     return lambda x: x / (x - constant * (x - 1))
 
 
-def sed(fname, pattern, replace_with):
-    contents = open(fname).read()
+def sed(in_file, out_file, pattern, replace_with):
+    contents = open(in_file).read()
     contents = pattern.sub(replace_with, contents)
-    open(fname, 'w').write(contents)
+    open(out_file, 'w').write(contents)
 
 
 def is_base_color(hue, saturation):
@@ -74,6 +74,7 @@ def relative_luma(rgb):
                for (coeff,
                     c) in zip([0.2126, 0.7152, 0.0722], parse_color(rgb)))
 
+
 # https://www.w3.org/TR/WCAG20/#contrast-ratiodef
 def contrast_ratio(c1, c2):
     ratio = (relative_luma(c1) + 0.05) / (relative_luma(c2) + 0.05)
@@ -85,6 +86,25 @@ def selected_fg_color():
             config.BASE, config.ACCENT)):
         return config.FOREGROUND
     return config.BASE
+
+
+def map_color(m):
+    m = m.group(0)
+    if m == ARC_ACCENT:
+        return config.ACCENT
+
+    rgb = parse_color(m)
+    h, l, s = colorsys.rgb_to_hls(*rgb)
+    if not is_base_color(h, s):
+        return m
+
+    target_h, target_l, target_s = colorsys.rgb_to_hls(
+        *parse_color(config.BACKGROUND))
+    bg_h, bg_l, bg_s = colorsys.rgb_to_hls(*ARC_BG)
+    transfer_l = transfer_function(bg_l, target_l)
+    transfer_s = transfer_function(bg_s, target_s)
+    return format_color(
+        colorsys.hls_to_rgb(target_h, transfer_l(l), transfer_s(s)))
 
 
 def map_color_definition(m):
@@ -103,44 +123,35 @@ def rewrite_files():
         subprocess.check_output(
             ['git', 'apply', os.path.join(PATCH_DIR, fname)])
 
-    target_h, target_l, target_s = colorsys.rgb_to_hls(
-        *parse_color(config.BACKGROUND))
-    bg_h, bg_l, bg_s = colorsys.rgb_to_hls(*ARC_BG)
-    transfer_l = transfer_function(bg_l, target_l)
-    transfer_s = transfer_function(bg_s, target_s)
+    for file in os.listdir(SASS_DIR):
+        fname = os.path.join(SASS_DIR, file)
+        sed(fname, fname, COLOR_PATTERN, map_color)
 
-    def map_color(m):
-        m = m.group(0)
-        if m == ARC_ACCENT:
-            return config.ACCENT
-        rgb = parse_color(m)
-        h, l, s = colorsys.rgb_to_hls(*rgb)
-        if not is_base_color(h, s):
-            return m
-        return format_color(
-            colorsys.hls_to_rgb(target_h, transfer_l(l), transfer_s(s)))
-
-    for dir, dirs, files in os.walk(GTK3_DIR):
-        for file in files:
-            sed(os.path.join(dir, file), COLOR_PATTERN, map_color)
-
-    sed(COLORS_SASS_FILE, COLOR_DEFINITION_PATTERN, map_color_definition)
+    sed(COLORS_SASS_FILE, COLORS_SASS_FILE, COLOR_DEFINITION_PATTERN,
+        map_color_definition)
 
 
 def build():
-    shutil.rmtree(BUILD_DIR, ignore_errors=True)
-    subprocess.check_call([
-        'meson',
-        'build',
-        '--prefix=' + INSTALL_DIR,
-        '-Dthemes=gtk3',
-        '-Dgtk3_version=' + GTK_VERSION,
-        '-Dvariants=' + THEME_VARIANT,
-        '-Dtransparency=false',
-    ])
-    subprocess.check_call(['meson', 'install', '-C', 'build'])
+    if not os.path.isdir(BUILD_DIR):
+        subprocess.check_call([
+            'meson',
+            'build',
+            '-Dthemes=gtk3',
+            '-Dgtk3_version=' + GTK_VERSION,
+            '-Dvariants=dark,lighter',
+            '-Dtransparency=false',
+        ])
+    subprocess.check_call(['ninja', '-C', BUILD_DIR, GTK_MAIN_FILE])
     shutil.rmtree(ARC_BASE16_DIR, ignore_errors=True)
-    shutil.move(ARC_SOLID_DIR, ARC_BASE16_DIR)
+    os.makedirs(ASSETS_DIR)
+    shutil.move(os.path.join(BUILD_DIR, GTK_MAIN_FILE),
+                os.path.join(ARC_BASE16_DIR, 'gtk-3.0', 'gtk.css'))
+    GTK3_DIR = os.path.join(BUILD_DIR, 'common', 'gtk-3.0')
+    for fname in os.listdir(GTK3_DIR):
+        if not fname.endswith('.svg'):
+            continue
+        sed(os.path.join(GTK3_DIR, fname), os.path.join(ASSETS_DIR, fname),
+            COLOR_PATTERN, map_color)
 
 
 GTK_VERSION = '3.24'
@@ -170,13 +181,13 @@ COLOR_DEFINITION_PATTERN = re.compile(r'\$(\w+): (.*);')
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 CWD = os.path.join(SCRIPT_DIR, 'arc-theme')
 PATCH_DIR = os.path.join(SCRIPT_DIR, 'patches')
-GTK3_DIR = os.path.join(CWD, 'common', 'gtk-3.0', GTK_VERSION)
-COLORS_SASS_FILE = os.path.join(GTK3_DIR, 'sass', '_colors.scss')
+SASS_DIR = os.path.join(CWD, 'common', 'gtk-3.0', GTK_VERSION, 'sass')
+COLORS_SASS_FILE = os.path.join(SASS_DIR, '_colors.scss')
 BUILD_DIR = os.path.join(CWD, 'build')
-INSTALL_DIR = os.path.join(BUILD_DIR, 'install')
-ARC_SOLID_DIR = os.path.join(INSTALL_DIR, 'share', 'themes',
-                             'Arc-%s-solid' % THEME_VARIANT.capitalize())
 ARC_BASE16_DIR = os.path.join(SCRIPT_DIR, 'Arc-Base16')
+GTK_MAIN_FILE = os.path.join('common', 'gtk-3.0',
+                             'gtk-main-%s.css' % THEME_VARIANT)
+ASSETS_DIR = os.path.join(ARC_BASE16_DIR, 'gtk-3.0', 'assets')
 
 
 def main():
