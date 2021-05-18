@@ -142,14 +142,22 @@ def build():
             '-Dtransparency=false',
         ])
         subprocess.check_call(['ninja', '-C', BUILD_DIR])
+        for fname in os.listdir(SVG_DIR):
+            if m := SVG_PATTERN.fullmatch(fname):
+                ofname = m.group(1) + '@2.svg'
+                subprocess.check_call([
+                    'rsvg-convert', '-x', '2', '-y', '2', '-f', 'svg',
+                    os.path.join(SVG_DIR, fname), '-o',
+                    os.path.join(SVG_DIR, ofname)
+                ])
+
     shutil.rmtree(ARC_BASE16_DIR, ignore_errors=True)
     os.makedirs(ASSETS_DIR)
     subprocess.check_call(['sassc', GTK_MAIN_FILE, GTK_CSS_FILE])
     for fname in os.listdir(SVG_DIR):
-        if not fname.endswith('.svg'):
-            continue
-        sed(os.path.join(SVG_DIR, fname), os.path.join(ASSETS_DIR, fname),
-            COLOR_PATTERN, map_color)
+        if fname.endswith('.svg'):
+            sed(os.path.join(SVG_DIR, fname), os.path.join(ASSETS_DIR, fname),
+                COLOR_PATTERN, map_color)
 
 
 GTK_VERSION = '3.24'
@@ -175,11 +183,15 @@ FG_COLOR_NAMES = set([
 
 COLOR_PATTERN = re.compile(r'#[0-9a-fA-F]{6}')
 COLOR_DEFINITION_PATTERN = re.compile(r'\$(\w+): (.*);')
+SVG_PATTERN = re.compile(r'(.*)\.svg')
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 CWD = os.path.join(SCRIPT_DIR, 'arc-theme')
 PATCH_DIR = os.path.join(SCRIPT_DIR, 'patches')
-SASS_DIR = os.path.join(CWD, 'common', 'gtk-3.0', GTK_VERSION, 'sass')
+GTK_DIR = os.path.join(CWD, 'common', 'gtk-3.0', GTK_VERSION)
+ASSETS_SVG_FILE = os.path.join(GTK_DIR, 'assets.svg')
+ASSETS2_SVG_FILE = os.path.join(GTK_DIR, 'assets2.svg')
+SASS_DIR = os.path.join(GTK_DIR, 'sass')
 COLORS_SASS_FILE = os.path.join(SASS_DIR, '_colors.scss')
 GTK_MAIN_FILE = os.path.join(SASS_DIR, 'gtk-solid-%s.scss' % THEME_VARIANT)
 BUILD_DIR = os.path.join(CWD, 'build')
