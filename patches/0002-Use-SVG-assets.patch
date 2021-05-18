@@ -1,0 +1,173 @@
+From 150c3ee01b7a6b0ae066f174fcc728ba9f4552be Mon Sep 17 00:00:00 2001
+From: tomKPZ <tomKPZ@gmail.com>
+Date: Sun, 16 May 2021 12:24:53 -0700
+Subject: [PATCH] Use SVG assets
+
+---
+ common/gtk-3.0/3.24/sass/_common.scss | 30 +++++++++++++--------------
+ common/gtk-3.0/meson.build            | 29 ++++++--------------------
+ 2 files changed, 21 insertions(+), 38 deletions(-)
+
+diff --git a/common/gtk-3.0/3.24/sass/_common.scss b/common/gtk-3.0/3.24/sass/_common.scss
+index 9bde7c9..de6dda6 100644
+--- a/common/gtk-3.0/3.24/sass/_common.scss
++++ b/common/gtk-3.0/3.24/sass/_common.scss
+@@ -2110,21 +2110,21 @@ switch {
+                (':disabled','-insensitive'),
+                (':checked:disabled','-active-insensitive') {
+ 
+-  // load switch troughs from .png files in assets directory
++  // load switch troughs from .svg files in assets directory
+ 
+   switch#{$k} {
+-    background-image: -gtk-scaled(url("assets/switch#{$l}#{$asset_suffix}.png"),url("assets/switch#{$l}#{$asset_suffix}@2.png"));
++    background-image: -gtk-scaled(url("assets/switch#{$l}#{$asset_suffix}.svg"),url("assets/switch#{$l}#{$asset_suffix}@2.svg"));
+   }
+ 
+   menuitem:hover switch#{$k},
+   row:selected switch#{$k},
+   infobar switch#{$k} {
+-    background-image: -gtk-scaled(url("assets/switch#{$l}-selected.png"),url("assets/switch#{$l}-selected@2.png"));
++    background-image: -gtk-scaled(url("assets/switch#{$l}-selected.svg"),url("assets/switch#{$l}-selected@2.svg"));
+   }
+ 
+   headerbar switch#{$k},
+   .primary-toolbar switch#{$k} {
+-    background-image: -gtk-scaled(url("assets/switch#{$l}-header#{$darker_asset_suffix}.png"),url("assets/switch#{$l}-header#{$darker_asset_suffix}@2.png"));
++    background-image: -gtk-scaled(url("assets/switch#{$l}-header#{$darker_asset_suffix}.svg"),url("assets/switch#{$l}-header#{$darker_asset_suffix}@2.svg"));
+   }
+ }
+ 
+@@ -2144,15 +2144,15 @@ switch {
+     .#{$w}#{$s},
+     #{$w}#{$s},
+     treeview.#{$w}#{$s} {
+-      -gtk-icon-source: -gtk-scaled(url("assets/#{$a}#{$as}#{$asset_suffix}.png"),
+-                                    url("assets/#{$a}#{$as}#{$asset_suffix}@2.png"));
++      -gtk-icon-source: -gtk-scaled(url("assets/#{$a}#{$as}#{$asset_suffix}.svg"),
++                                    url("assets/#{$a}#{$as}#{$asset_suffix}@2.svg"));
+     }
+ 
+     .osd,
+     %osd_check_radio {
+       #{$w}#{$s} {
+-        -gtk-icon-source: -gtk-scaled(url("assets/#{$a}#{$as}-dark.png"),
+-                                      url("assets/#{$a}#{$as}-dark@2.png"));
++        -gtk-icon-source: -gtk-scaled(url("assets/#{$a}#{$as}-dark.svg"),
++                                      url("assets/#{$a}#{$as}-dark@2.svg"));
+       }
+     }
+     // the borders of checks and radios are
+@@ -2163,8 +2163,8 @@ switch {
+     treeview.#{$w}#{$s}:selected,
+     row:selected #{$w}#{$s},
+     infobar #{$w}#{$s} {
+-      -gtk-icon-source: -gtk-scaled(url("assets/#{$a}#{$as}-selected.png"),
+-                                    url("assets/#{$a}#{$as}-selected@2.png"));
++      -gtk-icon-source: -gtk-scaled(url("assets/#{$a}#{$as}-selected.svg"),
++                                    url("assets/#{$a}#{$as}-selected@2.svg"));
+     }
+   }
+ }
+@@ -2173,8 +2173,8 @@ switch {
+ @each $s,$as in ('','-selectionmode'),
+                   (':checked', '-checked-selectionmode') {
+   .view.content-view.check#{$s}:not(list) {
+-    -gtk-icon-source: -gtk-scaled(url("assets/checkbox#{$as}#{$asset_suffix}.png"),
+-                                    url("assets/checkbox#{$as}#{$asset_suffix}@2.png"));
++    -gtk-icon-source: -gtk-scaled(url("assets/checkbox#{$as}#{$asset_suffix}.svg"),
++                                    url("assets/checkbox#{$as}#{$asset_suffix}@2.svg"));
+     background-color: transparent;
+   }
+ }
+@@ -3319,12 +3319,12 @@ headerbar,
+ 
+       &:backdrop { opacity: 1; }
+     }
+-    // Load png assets for each button
++    // Load svg assets for each button
+     @each $k in ('close','maximize', 'minimize') {
+       @each $l, $m in ('',''), (':backdrop','-backdrop'), (':hover','-hover'), (':active','-active') {
+ 
+-        &.#{$k}#{$l} { background-image: -gtk-scaled(url('assets/titlebutton-#{$k}#{$m}#{$darker_asset_suffix}.png'),
+-                                                     url('assets/titlebutton-#{$k}#{$m}#{$darker_asset_suffix}@2.png')); }
++        &.#{$k}#{$l} { background-image: -gtk-scaled(url('assets/titlebutton-#{$k}#{$m}#{$darker_asset_suffix}.svg'),
++                                                     url('assets/titlebutton-#{$k}#{$m}#{$darker_asset_suffix}@2.svg')); }
+       }
+     }
+   }
+diff --git a/common/gtk-3.0/meson.build b/common/gtk-3.0/meson.build
+index 5334f5d..509b2ba 100644
+--- a/common/gtk-3.0/meson.build
++++ b/common/gtk-3.0/meson.build
+@@ -33,7 +33,7 @@ if gtk3_ver not in gtk3_versions
+   endif
+ endif
+ 
+-# render PNG assets
++# render SVG assets
+ 
+ gtk3_asset_names = run_command(
+   'cat', gtk3_ver / 'assets.txt',
+@@ -41,36 +41,20 @@ gtk3_asset_names = run_command(
+ ).stdout().split()
+ 
+ assets_svg = gtk3_ver / 'assets.svg'
++assets2_svg = gtk3_ver / 'assets2.svg'
+ 
+ gtk3_assets = []
+-gtk3_hidpi_assets = []
+ 
+ foreach asset : gtk3_asset_names
+   gtk3_assets += custom_target(
+     'gtk3-' + asset,
+     input : assets_svg,
+-    output : asset + '.png',
++    output : asset + '.svg',
+     command : [
+       inkscape,
+       '--export-id-only',
+-      inkscape_ver.version_compare('>=1.0') ? '--export-filename=@OUTPUT@' : '--export-png=@OUTPUT@',
++      '--export-plain-svg=@OUTPUT@',
+       '--export-id=' + asset,
+-      '--export-dpi=96',
+-      '@INPUT@'
+-    ],
+-    build_by_default : true
+-  )
+-
+-  gtk3_hidpi_assets += custom_target(
+-    'gtk3-' + asset + '-hidpi',
+-    input : assets_svg,
+-    output : asset + '@2.png',
+-    command : [
+-      inkscape,
+-      '--export-id-only',
+-      inkscape_ver.version_compare('>=1.0') ? '--export-filename=@OUTPUT@' : '--export-png=@OUTPUT@',
+-      '--export-id=' + asset,
+-      '--export-dpi=192',
+       '@INPUT@'
+     ],
+     build_by_default : true
+@@ -130,8 +114,7 @@ foreach variant : get_option('variants')
+   #TODO update asset paths in SASS files and get rid of the alias=
+   foreach asset : gtk3_asset_names
+     gresource_xml_array += [
+-      '<file preprocess="to-pixdata" alias="assets/' + asset + '.png">' + asset + '.png</file>',
+-      '<file preprocess="to-pixdata" alias="assets/' + asset + '@2.png">' + asset + '@2.png</file>'
++      '<file preprocess="to-pixdata" alias="assets/' + asset + '.svg">' + asset + '.svg</file>',
+     ]
+   endforeach
+ 
+@@ -165,7 +148,7 @@ foreach variant : get_option('variants')
+       '--target=@OUTPUT@',
+       '@INPUT@'
+     ],
+-    depends : [gtk3_assets, gtk3_hidpi_assets, gtk3_stylesheet],
++    depends : [gtk3_assets, gtk3_stylesheet],
+     build_by_default : true
+   )
+ 
+-- 
+2.31.1
+
