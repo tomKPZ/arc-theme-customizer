@@ -142,22 +142,22 @@ def build():
             '-Dtransparency=false',
         ])
         subprocess.check_call(['ninja', '-C', BUILD_DIR])
-        for fname in os.listdir(SVG_DIR):
-            if m := SVG_PATTERN.fullmatch(fname):
-                ofname = m.group(1) + '@2.svg'
-                subprocess.check_call([
-                    'rsvg-convert', '-x', '2', '-y', '2', '-f', 'svg',
-                    os.path.join(SVG_DIR, fname), '-o',
-                    os.path.join(SVG_DIR, ofname)
-                ])
-
     shutil.rmtree(ARC_BASE16_DIR, ignore_errors=True)
     os.makedirs(ASSETS_DIR)
-    subprocess.check_call(['sassc', GTK_MAIN_FILE, GTK_CSS_FILE])
+    procs = [subprocess.Popen(['sassc', GTK_MAIN_FILE, GTK_CSS_FILE])]
     for fname in os.listdir(SVG_DIR):
-        if fname.endswith('.svg'):
+        if m := SVG_PATTERN.fullmatch(fname):
             sed(os.path.join(SVG_DIR, fname), os.path.join(ASSETS_DIR, fname),
                 COLOR_PATTERN, map_color)
+            ofname = m.group(1) + '@2.svg'
+            procs.append(
+                subprocess.Popen([
+                    'rsvg-convert', '-x', '2', '-y', '2', '-f', 'svg',
+                    os.path.join(ASSETS_DIR, fname), '-o',
+                    os.path.join(ASSETS_DIR, ofname)
+                ]))
+    for proc in procs:
+        assert not proc.wait()
 
 
 GTK_VERSION = '3.24'
