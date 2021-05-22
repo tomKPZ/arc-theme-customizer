@@ -142,7 +142,7 @@ def build():
             '-Dtransparency=false',
         ])
         subprocess.check_call(['ninja', '-C', BUILD_DIR])
-    shutil.rmtree(ARC_BASE16_DIR, ignore_errors=True)
+    shutil.rmtree(ARC_CUSTOM_DIR, ignore_errors=True)
     os.makedirs(ASSETS_DIR)
     procs = [subprocess.Popen(['sassc', GTK_MAIN_FILE, GTK_CSS_FILE])]
     for fname in os.listdir(SVG_DIR):
@@ -196,8 +196,8 @@ COLORS_SASS_FILE = os.path.join(SASS_DIR, '_colors.scss')
 GTK_MAIN_FILE = os.path.join(SASS_DIR, 'gtk-solid-%s.scss' % THEME_VARIANT)
 BUILD_DIR = os.path.join(CWD, 'build')
 SVG_DIR = os.path.join(BUILD_DIR, 'common', 'gtk-3.0')
-ARC_BASE16_DIR = os.path.join(SCRIPT_DIR, 'Arc-Base16')
-THEME_DIR = os.path.join(ARC_BASE16_DIR, 'gtk-3.0')
+ARC_CUSTOM_DIR = os.path.join(SCRIPT_DIR, 'Arc-' + config.THEME_SUFFIX)
+THEME_DIR = os.path.join(ARC_CUSTOM_DIR, 'gtk-3.0')
 ASSETS_DIR = os.path.join(THEME_DIR, 'assets')
 GTK_CSS_FILE = os.path.join(THEME_DIR, 'gtk.css')
 
