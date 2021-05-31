@@ -118,7 +118,6 @@ def map_color_definition(m):
 
 
 def rewrite_files():
-    subprocess.check_output(['git', 'reset', '--hard'])
     for fname in os.listdir(PATCH_DIR):
         subprocess.check_output(
             ['git', 'apply', os.path.join(PATCH_DIR, fname)])
@@ -206,6 +205,7 @@ def main():
     os.chdir(CWD)
     rewrite_files()
     build()
+    subprocess.check_output(['git', 'reset', '--hard'])
     return 0
 
 
