@@ -1,0 +1,4 @@
+[submodule "arc-theme"]
+	path = arc-theme
+	url = https://github.com/jnsh/arc-theme.git
+	branch = master
