@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import argparse
 import colorsys
 import itertools
 import os
@@ -7,8 +8,6 @@ import re
 import shutil
 import subprocess
 import sys
-
-import config
 
 # ----- Unthemed colors -----
 # $warning_color: #F27835;
@@ -82,16 +81,15 @@ def contrast_ratio(c1, c2):
 
 
 def selected_fg_color():
-    if (contrast_ratio(config.FOREGROUND, config.ACCENT) > contrast_ratio(
-            config.BASE, config.ACCENT)):
-        return config.FOREGROUND
-    return config.BASE
+    if (contrast_ratio(FOREGROUND, ACCENT) > contrast_ratio(BASE, ACCENT)):
+        return FOREGROUND
+    return BASE
 
 
 def map_color(m):
     m = m.group(0)
     if m == ARC_ACCENT:
-        return config.ACCENT
+        return ACCENT
 
     rgb = parse_color(m)
     h, l, s = colorsys.rgb_to_hls(*rgb)
@@ -99,7 +97,7 @@ def map_color(m):
         return m
 
     target_h, target_l, target_s = colorsys.rgb_to_hls(
-        *parse_color(config.BACKGROUND))
+        *parse_color(BACKGROUND))
     bg_h, bg_l, bg_s = colorsys.rgb_to_hls(*ARC_BG)
     transfer_l = transfer_function(bg_l, target_l)
     transfer_s = transfer_function(bg_s, target_s)
@@ -111,9 +109,9 @@ def map_color_definition(m):
     if m.group(1) == 'selected_fg_color':
         return '$%s: %s;\n' % (m.group(1), selected_fg_color())
     if m.group(1) == 'base_color':
-        return '$%s: %s;\n' % (m.group(1), config.BASE)
+        return '$%s: %s;\n' % (m.group(1), BASE)
     if m.group(1) in FG_COLOR_NAMES:
-        return '$%s: %s;\n' % (m.group(1), config.FOREGROUND)
+        return '$%s: %s;\n' % (m.group(1), FOREGROUND)
     return m.group(0)
 
 
@@ -159,12 +157,18 @@ def build():
         assert not proc.wait()
 
 
+parser = argparse.ArgumentParser(description='Build a customized Arc theme')
+parser.add_argument('config_file', type=argparse.FileType('r'))
+args = parser.parse_args()
+
+exec(args.config_file.read())
+
 GTK_VERSION = '3.24'
 
 ARC_BG_DARK = '#383c4a'
 ARC_BG_LIGHT = '#f5f6f7'
 ARC_ACCENT = '#5294e2'
-if relative_luma(config.FOREGROUND) > relative_luma(config.BASE):
+if relative_luma(FOREGROUND) > relative_luma(BASE):
     ARC_BG = parse_color(ARC_BG_DARK)
     THEME_VARIANT = 'dark'
 else:
@@ -195,19 +199,12 @@ COLORS_SASS_FILE = os.path.join(SASS_DIR, '_colors.scss')
 GTK_MAIN_FILE = os.path.join(SASS_DIR, 'gtk-solid-%s.scss' % THEME_VARIANT)
 BUILD_DIR = os.path.join(CWD, 'build')
 SVG_DIR = os.path.join(BUILD_DIR, 'common', 'gtk-3.0')
-ARC_CUSTOM_DIR = os.path.join(SCRIPT_DIR, 'Arc-' + config.THEME_SUFFIX)
+ARC_CUSTOM_DIR = os.path.join(SCRIPT_DIR, 'Arc-' + THEME_SUFFIX)
 THEME_DIR = os.path.join(ARC_CUSTOM_DIR, 'gtk-3.0')
 ASSETS_DIR = os.path.join(THEME_DIR, 'assets')
 GTK_CSS_FILE = os.path.join(THEME_DIR, 'gtk.css')
 
-
-def main():
-    os.chdir(CWD)
-    rewrite_files()
-    build()
-    subprocess.check_output(['git', 'reset', '--hard'])
-    return 0
-
-
-if __name__ == '__main__':
-    sys.exit(main())
+os.chdir(CWD)
+rewrite_files()
+build()
+subprocess.check_output(['git', 'reset', '--hard'])
