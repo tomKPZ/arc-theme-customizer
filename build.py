@@ -40,12 +40,12 @@ def format_color(rgb):
         min(255, int(channel * 256)) for channel in rgb)
 
 
-# Maybe make this a shift to avoid clamping?
+def lerp(x, in_min, in_max, out_min, out_max):
+  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+
+
 def transfer_function(x0, y0):
-    if y0 in (0, 1):
-        return lambda _: y0
-    constant = x0 * (y0 - 1) / (y0 * (x0 - 1))
-    return lambda x: x / (x - constant * (x - 1))
+    return lambda x: lerp(x, 0, x0, 0, y0) if x < x0 else lerp(x, x0, 1, y0, 1)
 
 
 def sed(in_file, out_file, pattern, replace_with):
@@ -58,7 +58,7 @@ def is_base_color(hue, saturation):
     BASE_H = 0.61475
     BASE_S = 0.12992
     THRESH_H = 0.05
-    THRESH_S = 0.10
+    THRESH_S = 0.20
     return abs(hue - BASE_H) < THRESH_H and abs(saturation - BASE_S) < THRESH_S
 
 
