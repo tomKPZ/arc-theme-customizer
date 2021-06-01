@@ -10,12 +10,6 @@ import subprocess
 import sys
 
 # ----- Unthemed colors -----
-# $warning_color: #F27835;
-# $error_color: #FC4138;
-# $success_color: #73d216;
-# $destructive_color: #F04A50;
-# $suggested_color: #4DADD4;
-# $drop_target_color: #F08437;
 # $dark_sidebar_bg: if($transparency == 'true', transparentize(#353945, 0.05), #353945);
 # $dark_sidebar_fg: #BAC3CF;
 # $entry_border: if($variant != 'dark', #cfd6e6, darken($borders_color, 0%));
@@ -110,8 +104,8 @@ def map_color_definition(m):
         return '$%s: %s;\n' % (m.group(1), selected_fg_color())
     if m.group(1) == 'base_color':
         return '$%s: %s;\n' % (m.group(1), BASE)
-    if m.group(1) in FG_COLOR_NAMES:
-        return '$%s: %s;\n' % (m.group(1), FOREGROUND)
+    if m.group(1) in NAMED_COLORS:
+        return '$%s: %s;\n' % (m.group(1), NAMED_COLORS[m.group(1)])
     return m.group(0)
 
 
@@ -175,14 +169,25 @@ else:
     ARC_BG = parse_color(ARC_BG_LIGHT)
     THEME_VARIANT = 'lighter'
 
-FG_COLOR_NAMES = set([
+FG_COLOR_NAMES = [
     'text_color',
     'fg_color',
-    'error_fg_color',
-    'warning_fg_color',
-    'suggested_fg_color',
-    'destructive_fg_color',
-])
+]
+
+NAMED_COLORS = {
+    'text_color': FOREGROUND,
+    'fg_color': FOREGROUND,
+    'warning_color': WARNING_COLOR,
+    'error_color': ERROR_COLOR,
+    'warning_fg_color': WARNING_FG_COLOR,
+    'error_fg_color': ERROR_FG_COLOR,
+    'success_color': SUCCESS_COLOR,
+    'destructive_color': DESTRUCTIVE_COLOR,
+    'suggested_color': SUGGESTED_COLOR,
+    'destructive_fg_color': DESTRUCTIVE_FG_COLOR,
+    'suggested_fg_color': SUGGESTED_FG_COLOR,
+    'drop_target_color': DROP_TARGET_COLOR,
+}
 
 COLOR_PATTERN = re.compile(r'#[0-9a-fA-F]{6}')
 COLOR_DEFINITION_PATTERN = re.compile(r'\$(\w+): (.*);')
