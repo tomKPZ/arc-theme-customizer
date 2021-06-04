@@ -39,6 +39,7 @@ def lerp(x, in_min, in_max, out_min, out_max):
 
 
 def transfer_function(x0, y0):
+    if y0 in (0, 1): return lambda _: y0
     return lambda x: lerp(x, 0, x0, 0, y0) if x < x0 else lerp(x, x0, 1, y0, 1)
 
 
