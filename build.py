@@ -39,7 +39,6 @@ def lerp(x, in_min, in_max, out_min, out_max):
 
 
 def transfer_function(x0, y0):
-    if y0 in (0, 1): return lambda _: y0
     return lambda x: lerp(x, 0, x0, 0, y0) if x < x0 else lerp(x, x0, 1, y0, 1)
 
 
@@ -95,9 +94,8 @@ def map_color(m):
         *parse_color(BACKGROUND))
     bg_h, bg_l, bg_s = colorsys.rgb_to_hls(*ARC_BG)
     transfer_l = transfer_function(bg_l, target_l)
-    transfer_s = transfer_function(bg_s, target_s)
     return format_color(
-        colorsys.hls_to_rgb(target_h, transfer_l(l), transfer_s(s)))
+        colorsys.hls_to_rgb(target_h, transfer_l(l), target_s))
 
 
 def map_color_definition(m):
