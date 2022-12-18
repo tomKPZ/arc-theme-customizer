@@ -129,7 +129,7 @@ def build():
             '-Dthemes=gtk3',
             '-Dgtk3_version=' + GTK_VERSION,
             '-Dvariants=dark,lighter',
-            '-Dtransparency=false',
+            '-Dtransparency=true',
         ])
         subprocess.check_call(['ninja', '-C', BUILD_DIR])
     shutil.rmtree(ARC_CUSTOM_DIR, ignore_errors=True)
