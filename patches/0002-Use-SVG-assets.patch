@@ -4,14 +4,14 @@ Date: Sun, 16 May 2021 12:24:53 -0700
 Subject: [PATCH] Use SVG assets
 
 ---
- common/gtk-3.0/3.24/sass/_common.scss | 30 +++++++++++++--------------
+ common/gtk-3.0/sass/_common.scss | 30 +++++++++++++--------------
  common/gtk-3.0/meson.build            | 29 ++++++--------------------
  2 files changed, 21 insertions(+), 38 deletions(-)
 
-diff --git a/common/gtk-3.0/3.24/sass/_common.scss b/common/gtk-3.0/3.24/sass/_common.scss
+diff --git a/common/gtk-3.0/sass/_common.scss b/common/gtk-3.0/sass/_common.scss
 index 9bde7c9..de6dda6 100644
---- a/common/gtk-3.0/3.24/sass/_common.scss
-+++ b/common/gtk-3.0/3.24/sass/_common.scss
+--- a/common/gtk-3.0/sass/_common.scss
++++ b/common/gtk-3.0/sass/_common.scss
 @@ -2110,21 +2110,21 @@ switch {
                 (':disabled','-insensitive'),
                 (':checked:disabled','-active-insensitive') {
@@ -96,78 +96,103 @@ index 9bde7c9..de6dda6 100644
        }
      }
    }
-diff --git a/common/gtk-3.0/meson.build b/common/gtk-3.0/meson.build
-index 5334f5d..509b2ba 100644
---- a/common/gtk-3.0/meson.build
-+++ b/common/gtk-3.0/meson.build
-@@ -33,7 +33,7 @@ if gtk3_ver not in gtk3_versions
-   endif
- endif
+diff --git a/common/gtk-3.0/sass/_applications.scss b/common/gtk-3.0/sass/_applications.scss
+index f46551fd..33621036 100644
+--- a/common/gtk-3.0/sass/_applications.scss
++++ b/common/gtk-3.0/sass/_applications.scss
+@@ -690,7 +690,7 @@ button.documents-favorite:active:hover {
+ .content-view.document-page {
+   border-style: solid;
+   border-width: 3px 3px 6px 4px;
+-  border-image: url("assets/thumbnail-frame.png") 3 3 6 4;
++  border-image: url("assets/thumbnail-frame.svg") 3 3 6 4;
+ }
  
--# render PNG assets
-+# render SVG assets
- 
- gtk3_asset_names = run_command(
-   'cat', gtk3_ver / 'assets.txt',
-@@ -41,36 +41,20 @@ gtk3_asset_names = run_command(
- ).stdout().split()
- 
- assets_svg = gtk3_ver / 'assets.svg'
-+assets2_svg = gtk3_ver / 'assets2.svg'
+ //
+diff --git a/common/gtk-3.0/assets/meson.build b/common/gtk-3.0/assets/meson.build
+index 39052430..c3578f8b 100644
+--- a/common/gtk-3.0/assets/meson.build
++++ b/common/gtk-3.0/assets/meson.build
+@@ -1,14 +1,12 @@
+ assets_svg = 'assets.svg'
  
  gtk3_assets = []
 -gtk3_hidpi_assets = []
  
+ gtk3_asset_files = []
+-gtk3_hidpi_asset_files = []
+ 
  foreach asset : gtk3_asset_names
-   gtk3_assets += custom_target(
-     'gtk3-' + asset,
-     input : assets_svg,
--    output : asset + '.png',
-+    output : asset + '.svg',
-     command : [
-       inkscape,
-       '--export-id-only',
--      inkscape_ver.version_compare('>=1.0') ? '--export-filename=@OUTPUT@' : '--export-png=@OUTPUT@',
-+      '--export-plain-svg=@OUTPUT@',
-       '--export-id=' + asset,
--      '--export-dpi=96',
--      '@INPUT@'
--    ],
--    build_by_default : true
--  )
+ 
+-  asset_filename = asset + '.png'
++  asset_filename = asset + '.svg'
+ 
+   if fs.exists(asset_filename)
+     gtk3_asset_files += meson.current_source_dir() / asset_filename
+@@ -24,34 +22,7 @@ foreach asset : gtk3_asset_names
+       command : [
+         inkscape,
+         '--export-id-only',
+-        inkscape_ver.version_compare('>=1.0') ? '--export-filename=@OUTPUT@' : '--export-png=@OUTPUT@',
+-        '--export-id=' + asset,
+-        '--export-dpi=96',
+-        '@INPUT@'
+-      ],
+-      build_by_default : true
+-    )
+-  endif
 -
--  gtk3_hidpi_assets += custom_target(
--    'gtk3-' + asset + '-hidpi',
--    input : assets_svg,
--    output : asset + '@2.png',
--    command : [
--      inkscape,
--      '--export-id-only',
--      inkscape_ver.version_compare('>=1.0') ? '--export-filename=@OUTPUT@' : '--export-png=@OUTPUT@',
--      '--export-id=' + asset,
--      '--export-dpi=192',
-       '@INPUT@'
-     ],
-     build_by_default : true
-@@ -130,8 +114,7 @@ foreach variant : get_option('variants')
-   #TODO update asset paths in SASS files and get rid of the alias=
+-  hidpi_asset_filename = asset + '@2.png'
+-
+-  if fs.exists(hidpi_asset_filename)
+-    gtk3_hidpi_asset_files += meson.current_source_dir() / hidpi_asset_filename
+-  else
+-    if not inkscape.found()
+-      error('Program \'inkscape\' not found')
+-    endif
+-
+-    gtk3_hidpi_assets += custom_target(
+-      'gtk3-' + asset + '-hidpi',
+-      input : assets_svg,
+-      output : hidpi_asset_filename,
+-      command : [
+-        inkscape,
+-        '--export-id-only',
+-        inkscape_ver.version_compare('>=1.0') ? '--export-filename=@OUTPUT@' : '--export-png=@OUTPUT@',
+-        '--export-id=' + asset,
+-        '--export-dpi=192',
++        '--export-plain-svg=@OUTPUT@',
+         '@INPUT@'
+       ],
+       build_by_default : true
+diff --git a/common/gtk-3.0/meson.build b/common/gtk-3.0/meson.build
+index 0d01960a..aa43a60d 100644
+--- a/common/gtk-3.0/meson.build
++++ b/common/gtk-3.0/meson.build
+@@ -1,4 +1,4 @@
+-# render PNG assets
++# render SVG assets
+ 
+ gtk3_asset_names = run_command(
+   'cat', 'assets' / 'assets.txt',
+@@ -74,8 +74,7 @@ foreach variant : get_option('variants')
+ 
    foreach asset : gtk3_asset_names
      gresource_xml_array += [
--      '<file preprocess="to-pixdata" alias="assets/' + asset + '.png">' + asset + '.png</file>',
--      '<file preprocess="to-pixdata" alias="assets/' + asset + '@2.png">' + asset + '@2.png</file>'
-+      '<file preprocess="to-pixdata" alias="assets/' + asset + '.svg">' + asset + '.svg</file>',
+-      '<file>assets/' + asset + '.png</file>',
+-      '<file>assets/' + asset + '@2.png</file>'
++      '<file>assets/' + asset + '.svg</file>',
      ]
    endforeach
  
-@@ -165,7 +148,7 @@ foreach variant : get_option('variants')
+@@ -110,8 +109,8 @@ foreach variant : get_option('variants')
        '--target=@OUTPUT@',
        '@INPUT@'
      ],
--    depends : [gtk3_assets, gtk3_hidpi_assets, gtk3_stylesheet],
-+    depends : [gtk3_assets, gtk3_stylesheet],
+-    depends : [gtk3_assets, gtk3_hidpi_assets, gtk3_stylesheets],
+-    depend_files : [gtk3_asset_files, gtk3_hidpi_asset_files],
++    depends : [gtk3_assets, gtk3_stylesheets],
++    depend_files : [gtk3_asset_files],
      build_by_default : true
    )
  
--- 
-2.31.1
-
