@@ -125,7 +125,6 @@ def build():
                 "meson",
                 "build",
                 "-Dthemes=gtk3",
-                "-Dgtk3_version=" + GTK_VERSION,
                 "-Dvariants=dark,lighter",
                 "-Dtransparency=true",
             ]
@@ -169,8 +168,6 @@ args = parser.parse_args()
 
 config = {}
 exec(args.config_file.read(), {}, config)
-
-GTK_VERSION = "3.24"
 
 ARC_BG_DARK = "#383c4a"
 ARC_BG_LIGHT = "#f5f6f7"
