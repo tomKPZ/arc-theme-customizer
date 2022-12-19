@@ -129,7 +129,7 @@ index 39052430..c3578f8b 100644
  
    if fs.exists(asset_filename)
      gtk3_asset_files += meson.current_source_dir() / asset_filename
-@@ -24,34 +22,7 @@ foreach asset : gtk3_asset_names
+@@ -24,34 +22,8 @@ foreach asset : gtk3_asset_names
        command : [
          inkscape,
          '--export-id-only',
@@ -161,7 +161,8 @@ index 39052430..c3578f8b 100644
 -        inkscape_ver.version_compare('>=1.0') ? '--export-filename=@OUTPUT@' : '--export-png=@OUTPUT@',
 -        '--export-id=' + asset,
 -        '--export-dpi=192',
-+        '--export-plain-svg=@OUTPUT@',
++        '--export-id=' + asset,
++        '--export-filename=@OUTPUT@',
          '@INPUT@'
        ],
        build_by_default : true
