@@ -67,22 +67,26 @@ def contrast_ratio(c1, c2):
 
 
 def selected_fg_color():
-    if contrast_ratio(FOREGROUND, ACCENT) > contrast_ratio(BASE, ACCENT):
-        return FOREGROUND
-    return BASE
+    if contrast_ratio(config["FOREGROUND"], config["ACCENT"]) > contrast_ratio(
+        config["BASE"], config["ACCENT"]
+    ):
+        return config["FOREGROUND"]
+    return config["BASE"]
 
 
 def map_color(m):
     m = m.group(0)
     if m == ARC_ACCENT:
-        return ACCENT
+        return config["ACCENT"]
 
     rgb = parse_color(m)
     h, l, s = colorsys.rgb_to_hls(*rgb)
     if not is_base_color(h, s):
         return m
 
-    target_h, target_l, target_s = colorsys.rgb_to_hls(*parse_color(BACKGROUND))
+    target_h, target_l, target_s = colorsys.rgb_to_hls(
+        *parse_color(config["BACKGROUND"])
+    )
     _, bg_l, _ = colorsys.rgb_to_hls(*ARC_BG)
     transfer_l = transfer_function(bg_l, target_l)
     return format_color(colorsys.hls_to_rgb(target_h, transfer_l(l), target_s))
@@ -92,7 +96,7 @@ def map_color_definition(m):
     if m.group(1) == "selected_fg_color":
         return "$%s: %s;\n" % (m.group(1), selected_fg_color())
     if m.group(1) == "base_color":
-        return "$%s: %s;\n" % (m.group(1), BASE)
+        return "$%s: %s;\n" % (m.group(1), config["BASE"])
     if m.group(1) in NAMED_COLORS:
         return "$%s: %s;\n" % (m.group(1), NAMED_COLORS[m.group(1)])
     return m.group(0)
@@ -163,14 +167,15 @@ parser = argparse.ArgumentParser(description="Build a customized Arc theme")
 parser.add_argument("config_file", type=argparse.FileType("r"))
 args = parser.parse_args()
 
-exec(args.config_file.read())
+config = {}
+exec(args.config_file.read(), {}, config)
 
 GTK_VERSION = "3.24"
 
 ARC_BG_DARK = "#383c4a"
 ARC_BG_LIGHT = "#f5f6f7"
 ARC_ACCENT = "#5294e2"
-if relative_luma(FOREGROUND) > relative_luma(BASE):
+if relative_luma(config["FOREGROUND"]) > relative_luma(config["BASE"]):
     ARC_BG = parse_color(ARC_BG_DARK)
     THEME_VARIANT = "dark"
 else:
@@ -183,18 +188,18 @@ FG_COLOR_NAMES = [
 ]
 
 NAMED_COLORS = {
-    "text_color": FOREGROUND,
-    "fg_color": FOREGROUND,
-    "warning_color": WARNING_COLOR,
-    "error_color": ERROR_COLOR,
-    "warning_fg_color": WARNING_FG_COLOR,
-    "error_fg_color": ERROR_FG_COLOR,
-    "success_color": SUCCESS_COLOR,
-    "destructive_color": DESTRUCTIVE_COLOR,
-    "suggested_color": SUGGESTED_COLOR,
-    "destructive_fg_color": DESTRUCTIVE_FG_COLOR,
-    "suggested_fg_color": SUGGESTED_FG_COLOR,
-    "drop_target_color": DROP_TARGET_COLOR,
+    "text_color": config["FOREGROUND"],
+    "fg_color": config["FOREGROUND"],
+    "warning_color": config["WARNING_COLOR"],
+    "error_color": config["ERROR_COLOR"],
+    "warning_fg_color": config["WARNING_FG_COLOR"],
+    "error_fg_color": config["ERROR_FG_COLOR"],
+    "success_color": config["SUCCESS_COLOR"],
+    "destructive_color": config["DESTRUCTIVE_COLOR"],
+    "suggested_color": config["SUGGESTED_COLOR"],
+    "destructive_fg_color": config["DESTRUCTIVE_FG_COLOR"],
+    "suggested_fg_color": config["SUGGESTED_FG_COLOR"],
+    "drop_target_color": config["DROP_TARGET_COLOR"],
 }
 
 COLOR_PATTERN = re.compile(r"#[0-9a-fA-F]{6}")
@@ -212,7 +217,7 @@ COLORS_SASS_FILE = os.path.join(SASS_DIR, "_colors.scss")
 GTK_MAIN_FILE = os.path.join(SASS_DIR, "gtk-%s.scss" % THEME_VARIANT)
 BUILD_DIR = os.path.join(CWD, "build")
 SVG_DIR = os.path.join(BUILD_DIR, "common", "gtk-3.0")
-ARC_CUSTOM_DIR = os.path.join(SCRIPT_DIR, "Arc-" + THEME_SUFFIX)
+ARC_CUSTOM_DIR = os.path.join(SCRIPT_DIR, "Arc-" + config["THEME_SUFFIX"])
 THEME_DIR = os.path.join(ARC_CUSTOM_DIR, "gtk-3.0")
 ASSETS_DIR = os.path.join(THEME_DIR, "assets")
 GTK_CSS_FILE = os.path.join(THEME_DIR, "gtk.css")
