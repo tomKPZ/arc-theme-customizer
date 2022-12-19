@@ -221,6 +221,6 @@ ASSETS_DIR = os.path.join(THEME_DIR, "assets")
 GTK_CSS_FILE = os.path.join(THEME_DIR, "gtk.css")
 
 os.chdir(CWD)
-subprocess.check_output(["git", "reset", "--hard"])
 rewrite_files()
 build()
+subprocess.check_output(["git", "reset", "--hard"])
