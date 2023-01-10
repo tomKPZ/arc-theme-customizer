@@ -1,0 +1,69 @@
+From bf5b7655f8b8fa1ff7881667427689059d84dc34 Mon Sep 17 00:00:00 2001
+From: tomKPZ <tomKPZ@gmail.com>
+Date: Mon, 9 Jan 2023 20:58:19 -0800
+Subject: [PATCH 3/3] More transparency
+
+---
+ common/gtk-3.0/sass/_colors.scss | 10 +++++-----
+ common/gtk-3.0/sass/_common.scss |  7 -------
+ 2 files changed, 5 insertions(+), 12 deletions(-)
+
+diff --git a/common/gtk-3.0/sass/_colors.scss b/common/gtk-3.0/sass/_colors.scss
+index 49f9c18e..a90928b0 100644
+--- a/common/gtk-3.0/sass/_colors.scss
++++ b/common/gtk-3.0/sass/_colors.scss
+@@ -16,7 +16,7 @@ $link_color: if($variant !='dark', darken($selected_bg_color,10%),
+ $link_visited_color: if($variant !='dark', darken($selected_bg_color,20%),
+                                      lighten($selected_bg_color,10%));
+ 
+-$selection_mode_bg: if($transparency == 'true', transparentize($selected_bg_color, 0.05), $selected_bg_color);
++$selection_mode_bg: if($transparency == 'true', transparentize($selected_bg_color, 0.15), $selected_bg_color);
+ $selection_mode_fg: $selected_fg_color;
+ $warning_color: #F27835;
+ $error_color: #FC4138;
+@@ -35,9 +35,9 @@ $insensitive_fg_color: if($variant !='dark', transparentize($fg_color, 0.45), tr
+ $insensitive_bg_color: if($variant !='dark', mix($bg_color, $base_color, 40%), lighten($bg_color, 2%));
+ 
+ $header_bg: red;
+-@if $transparency=='true' and ($variant=='light' or $variant=='lighter') { $header_bg: transparentize(#e7e8eb, 0.05); }
++@if $transparency=='true' and ($variant=='light' or $variant=='lighter') { $header_bg: transparentize(#e7e8eb, 0.15); }
+ @if $transparency=='false' and ($variant=='light' or $variant=='lighter') { $header_bg: #e7e8eb; }
+-@if $transparency=='true' and ($variant=='dark' or $variant=='darker') { $header_bg: transparentize(#2f343f, 0.03); }
++@if $transparency=='true' and ($variant=='dark' or $variant=='darker') { $header_bg: transparentize(#2f343f, 0.15); }
+ @if $transparency=='false' and ($variant=='dark' or $variant=='darker') { $header_bg: #2f343f; }
+ 
+ $header_bg_backdrop: if($variant == 'dark' or $variant=='darker', lighten($header_bg, 1.5%), lighten($header_bg, 3%));
+@@ -47,10 +47,10 @@ $header_border: if($variant == 'light' or $variant=='lighter', darken($header_bg
+ $header_fg: if($variant == 'light' or $variant=='lighter', saturate(transparentize($fg_color, 0.2), 10%), saturate(transparentize($fg_color, 0.2), 10%));
+ $header_fg: if($variant=='darker', saturate(transparentize(#D3DAE3, 0.2), 10%), $header_fg);
+ 
+-$dark_sidebar_bg: if($transparency == 'true', transparentize(#353945, 0.05), #353945);
++$dark_sidebar_bg: if($transparency == 'true', transparentize(#353945, 0.15), #353945);
+ $dark_sidebar_fg: #BAC3CF;
+ @if $variant == 'lighter' {
+-  $dark_sidebar_bg: if($transparency == 'true', transparentize($bg_color, 0.05), $bg_color);
++  $dark_sidebar_bg: if($transparency == 'true', transparentize($bg_color, 0.15), $bg_color);
+   $dark_sidebar_fg: $fg_color;
+ }
+ 
+diff --git a/common/gtk-3.0/sass/_common.scss b/common/gtk-3.0/sass/_common.scss
+index f415d1d5..04aa7338 100644
+--- a/common/gtk-3.0/sass/_common.scss
++++ b/common/gtk-3.0/sass/_common.scss
+@@ -1145,13 +1145,6 @@ headerbar,
+     }
+   }
+ 
+-  .maximized & {
+-    background-color: opacify($header_bg, 1);
+-    border-color: opacify($header_border, 1);
+-
+-    &:backdrop { background-color: opacify($header_bg_backdrop, 1); }
+-  }
+-
+   &.default-decoration,
+   .csd &.default-decoration,             // needed under wayland, since all gtk3 windows are csd windows
+   &.default-decoration:backdrop,
+-- 
+2.39.0
+

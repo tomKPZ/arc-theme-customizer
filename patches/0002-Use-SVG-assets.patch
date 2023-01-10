@@ -1,116 +1,17 @@
-From 150c3ee01b7a6b0ae066f174fcc728ba9f4552be Mon Sep 17 00:00:00 2001
+From e226516676c083379c065c3cb3fe5a9706e67fcb Mon Sep 17 00:00:00 2001
 From: tomKPZ <tomKPZ@gmail.com>
 Date: Sun, 16 May 2021 12:24:53 -0700
-Subject: [PATCH] Use SVG assets
+Subject: [PATCH 2/3] Use SVG assets
 
 ---
- common/gtk-3.0/sass/_common.scss | 30 +++++++++++++--------------
- common/gtk-3.0/meson.build            | 29 ++++++--------------------
- 2 files changed, 21 insertions(+), 38 deletions(-)
+ common/gtk-3.0/assets/meson.build      | 32 ++------------------------
+ common/gtk-3.0/meson.build             |  9 ++++----
+ common/gtk-3.0/sass/_applications.scss |  2 +-
+ common/gtk-3.0/sass/_common.scss       | 30 ++++++++++++------------
+ 4 files changed, 22 insertions(+), 51 deletions(-)
 
-diff --git a/common/gtk-3.0/sass/_common.scss b/common/gtk-3.0/sass/_common.scss
-index 9bde7c9..de6dda6 100644
---- a/common/gtk-3.0/sass/_common.scss
-+++ b/common/gtk-3.0/sass/_common.scss
-@@ -2110,21 +2110,21 @@ switch {
-                (':disabled','-insensitive'),
-                (':checked:disabled','-active-insensitive') {
- 
--  // load switch troughs from .png files in assets directory
-+  // load switch troughs from .svg files in assets directory
- 
-   switch#{$k} {
--    background-image: -gtk-scaled(url("assets/switch#{$l}#{$asset_suffix}.png"),url("assets/switch#{$l}#{$asset_suffix}@2.png"));
-+    background-image: -gtk-scaled(url("assets/switch#{$l}#{$asset_suffix}.svg"),url("assets/switch#{$l}#{$asset_suffix}@2.svg"));
-   }
- 
-   menuitem:hover switch#{$k},
-   row:selected switch#{$k},
-   infobar switch#{$k} {
--    background-image: -gtk-scaled(url("assets/switch#{$l}-selected.png"),url("assets/switch#{$l}-selected@2.png"));
-+    background-image: -gtk-scaled(url("assets/switch#{$l}-selected.svg"),url("assets/switch#{$l}-selected@2.svg"));
-   }
- 
-   headerbar switch#{$k},
-   .primary-toolbar switch#{$k} {
--    background-image: -gtk-scaled(url("assets/switch#{$l}-header#{$darker_asset_suffix}.png"),url("assets/switch#{$l}-header#{$darker_asset_suffix}@2.png"));
-+    background-image: -gtk-scaled(url("assets/switch#{$l}-header#{$darker_asset_suffix}.svg"),url("assets/switch#{$l}-header#{$darker_asset_suffix}@2.svg"));
-   }
- }
- 
-@@ -2144,15 +2144,15 @@ switch {
-     .#{$w}#{$s},
-     #{$w}#{$s},
-     treeview.#{$w}#{$s} {
--      -gtk-icon-source: -gtk-scaled(url("assets/#{$a}#{$as}#{$asset_suffix}.png"),
--                                    url("assets/#{$a}#{$as}#{$asset_suffix}@2.png"));
-+      -gtk-icon-source: -gtk-scaled(url("assets/#{$a}#{$as}#{$asset_suffix}.svg"),
-+                                    url("assets/#{$a}#{$as}#{$asset_suffix}@2.svg"));
-     }
- 
-     .osd,
-     %osd_check_radio {
-       #{$w}#{$s} {
--        -gtk-icon-source: -gtk-scaled(url("assets/#{$a}#{$as}-dark.png"),
--                                      url("assets/#{$a}#{$as}-dark@2.png"));
-+        -gtk-icon-source: -gtk-scaled(url("assets/#{$a}#{$as}-dark.svg"),
-+                                      url("assets/#{$a}#{$as}-dark@2.svg"));
-       }
-     }
-     // the borders of checks and radios are
-@@ -2163,8 +2163,8 @@ switch {
-     treeview.#{$w}#{$s}:selected,
-     row:selected #{$w}#{$s},
-     infobar #{$w}#{$s} {
--      -gtk-icon-source: -gtk-scaled(url("assets/#{$a}#{$as}-selected.png"),
--                                    url("assets/#{$a}#{$as}-selected@2.png"));
-+      -gtk-icon-source: -gtk-scaled(url("assets/#{$a}#{$as}-selected.svg"),
-+                                    url("assets/#{$a}#{$as}-selected@2.svg"));
-     }
-   }
- }
-@@ -2173,8 +2173,8 @@ switch {
- @each $s,$as in ('','-selectionmode'),
-                   (':checked', '-checked-selectionmode') {
-   .view.content-view.check#{$s}:not(list) {
--    -gtk-icon-source: -gtk-scaled(url("assets/checkbox#{$as}#{$asset_suffix}.png"),
--                                    url("assets/checkbox#{$as}#{$asset_suffix}@2.png"));
-+    -gtk-icon-source: -gtk-scaled(url("assets/checkbox#{$as}#{$asset_suffix}.svg"),
-+                                    url("assets/checkbox#{$as}#{$asset_suffix}@2.svg"));
-     background-color: transparent;
-   }
- }
-@@ -3319,12 +3319,12 @@ headerbar,
- 
-       &:backdrop { opacity: 1; }
-     }
--    // Load png assets for each button
-+    // Load svg assets for each button
-     @each $k in ('close','maximize', 'minimize') {
-       @each $l, $m in ('',''), (':backdrop','-backdrop'), (':hover','-hover'), (':active','-active') {
- 
--        &.#{$k}#{$l} { background-image: -gtk-scaled(url('assets/titlebutton-#{$k}#{$m}#{$darker_asset_suffix}.png'),
--                                                     url('assets/titlebutton-#{$k}#{$m}#{$darker_asset_suffix}@2.png')); }
-+        &.#{$k}#{$l} { background-image: -gtk-scaled(url('assets/titlebutton-#{$k}#{$m}#{$darker_asset_suffix}.svg'),
-+                                                     url('assets/titlebutton-#{$k}#{$m}#{$darker_asset_suffix}@2.svg')); }
-       }
-     }
-   }
-diff --git a/common/gtk-3.0/sass/_applications.scss b/common/gtk-3.0/sass/_applications.scss
-index f46551fd..33621036 100644
---- a/common/gtk-3.0/sass/_applications.scss
-+++ b/common/gtk-3.0/sass/_applications.scss
-@@ -690,7 +690,7 @@ button.documents-favorite:active:hover {
- .content-view.document-page {
-   border-style: solid;
-   border-width: 3px 3px 6px 4px;
--  border-image: url("assets/thumbnail-frame.png") 3 3 6 4;
-+  border-image: url("assets/thumbnail-frame.svg") 3 3 6 4;
- }
- 
- //
 diff --git a/common/gtk-3.0/assets/meson.build b/common/gtk-3.0/assets/meson.build
-index 39052430..c3578f8b 100644
+index 39052430..95decf84 100644
 --- a/common/gtk-3.0/assets/meson.build
 +++ b/common/gtk-3.0/assets/meson.build
 @@ -1,14 +1,12 @@
@@ -134,7 +35,7 @@ index 39052430..c3578f8b 100644
          inkscape,
          '--export-id-only',
 -        inkscape_ver.version_compare('>=1.0') ? '--export-filename=@OUTPUT@' : '--export-png=@OUTPUT@',
--        '--export-id=' + asset,
+         '--export-id=' + asset,
 -        '--export-dpi=96',
 -        '@INPUT@'
 -      ],
@@ -161,7 +62,6 @@ index 39052430..c3578f8b 100644
 -        inkscape_ver.version_compare('>=1.0') ? '--export-filename=@OUTPUT@' : '--export-png=@OUTPUT@',
 -        '--export-id=' + asset,
 -        '--export-dpi=192',
-+        '--export-id=' + asset,
 +        '--export-filename=@OUTPUT@',
          '@INPUT@'
        ],
@@ -197,3 +97,107 @@ index 0d01960a..aa43a60d 100644
      build_by_default : true
    )
  
+diff --git a/common/gtk-3.0/sass/_applications.scss b/common/gtk-3.0/sass/_applications.scss
+index f46551fd..33621036 100644
+--- a/common/gtk-3.0/sass/_applications.scss
++++ b/common/gtk-3.0/sass/_applications.scss
+@@ -690,7 +690,7 @@ button.documents-favorite:active:hover {
+ .content-view.document-page {
+   border-style: solid;
+   border-width: 3px 3px 6px 4px;
+-  border-image: url("assets/thumbnail-frame.png") 3 3 6 4;
++  border-image: url("assets/thumbnail-frame.svg") 3 3 6 4;
+ }
+ 
+ //
+diff --git a/common/gtk-3.0/sass/_common.scss b/common/gtk-3.0/sass/_common.scss
+index aee0675f..f415d1d5 100644
+--- a/common/gtk-3.0/sass/_common.scss
++++ b/common/gtk-3.0/sass/_common.scss
+@@ -2167,21 +2167,21 @@ switch {
+                (':disabled','-insensitive'),
+                (':checked:disabled','-active-insensitive') {
+ 
+-  // load switch troughs from .png files in assets directory
++  // load switch troughs from .svg files in assets directory
+ 
+   switch#{$k} {
+-    background-image: -gtk-scaled(url("assets/switch#{$l}#{$asset_suffix}.png"),url("assets/switch#{$l}#{$asset_suffix}@2.png"));
++    background-image: -gtk-scaled(url("assets/switch#{$l}#{$asset_suffix}.svg"),url("assets/switch#{$l}#{$asset_suffix}@2.svg"));
+   }
+ 
+   menuitem:hover switch#{$k},
+   row:selected switch#{$k},
+   infobar switch#{$k} {
+-    background-image: -gtk-scaled(url("assets/switch#{$l}-selected.png"),url("assets/switch#{$l}-selected@2.png"));
++    background-image: -gtk-scaled(url("assets/switch#{$l}-selected.svg"),url("assets/switch#{$l}-selected@2.svg"));
+   }
+ 
+   headerbar switch#{$k},
+   .primary-toolbar switch#{$k} {
+-    background-image: -gtk-scaled(url("assets/switch#{$l}-header#{$darker_asset_suffix}.png"),url("assets/switch#{$l}-header#{$darker_asset_suffix}@2.png"));
++    background-image: -gtk-scaled(url("assets/switch#{$l}-header#{$darker_asset_suffix}.svg"),url("assets/switch#{$l}-header#{$darker_asset_suffix}@2.svg"));
+   }
+ }
+ 
+@@ -2201,15 +2201,15 @@ switch {
+     .#{$w}#{$s},
+     #{$w}#{$s},
+     treeview.#{$w}#{$s} {
+-      -gtk-icon-source: -gtk-scaled(url("assets/#{$a}#{$as}#{$asset_suffix}.png"),
+-                                    url("assets/#{$a}#{$as}#{$asset_suffix}@2.png"));
++      -gtk-icon-source: -gtk-scaled(url("assets/#{$a}#{$as}#{$asset_suffix}.svg"),
++                                    url("assets/#{$a}#{$as}#{$asset_suffix}@2.svg"));
+     }
+ 
+     .osd,
+     %osd_check_radio {
+       #{$w}#{$s} {
+-        -gtk-icon-source: -gtk-scaled(url("assets/#{$a}#{$as}-dark.png"),
+-                                      url("assets/#{$a}#{$as}-dark@2.png"));
++        -gtk-icon-source: -gtk-scaled(url("assets/#{$a}#{$as}-dark.svg"),
++                                      url("assets/#{$a}#{$as}-dark@2.svg"));
+       }
+     }
+     // the borders of checks and radios are
+@@ -2222,8 +2222,8 @@ switch {
+     treeview.#{$w}#{$s}:selected,
+     row:selected #{$w}#{$s},
+     infobar #{$w}#{$s} {
+-      -gtk-icon-source: -gtk-scaled(url("assets/#{$a}#{$as}-selected.png"),
+-                                    url("assets/#{$a}#{$as}-selected@2.png"));
++      -gtk-icon-source: -gtk-scaled(url("assets/#{$a}#{$as}-selected.svg"),
++                                    url("assets/#{$a}#{$as}-selected@2.svg"));
+     }
+   }
+ }
+@@ -2232,8 +2232,8 @@ switch {
+ @each $s,$as in ('','-selectionmode'),
+                   (':checked', '-checked-selectionmode') {
+   .view.content-view.check#{$s}:not(list) {
+-    -gtk-icon-source: -gtk-scaled(url("assets/checkbox#{$as}#{$asset_suffix}.png"),
+-                                    url("assets/checkbox#{$as}#{$asset_suffix}@2.png"));
++    -gtk-icon-source: -gtk-scaled(url("assets/checkbox#{$as}#{$asset_suffix}.svg"),
++                                    url("assets/checkbox#{$as}#{$asset_suffix}@2.svg"));
+     background-color: transparent;
+   }
+ }
+@@ -3403,12 +3403,12 @@ headerbar,
+ 
+       &:backdrop { opacity: 1; }
+     }
+-    // Load png assets for each button
++    // Load svg assets for each button
+     @each $k in ('close','maximize', 'minimize') {
+       @each $l, $m in ('',''), (':backdrop','-backdrop'), (':hover','-hover'), (':active','-active') {
+ 
+-        &.#{$k}#{$l} { background-image: -gtk-scaled(url('assets/titlebutton-#{$k}#{$m}#{$darker_asset_suffix}.png'),
+-                                                     url('assets/titlebutton-#{$k}#{$m}#{$darker_asset_suffix}@2.png')); }
++        &.#{$k}#{$l} { background-image: -gtk-scaled(url('assets/titlebutton-#{$k}#{$m}#{$darker_asset_suffix}.svg'),
++                                                     url('assets/titlebutton-#{$k}#{$m}#{$darker_asset_suffix}@2.svg')); }
+       }
+     }
+   }
+-- 
+2.39.0
+
